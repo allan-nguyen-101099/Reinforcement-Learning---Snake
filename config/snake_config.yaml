@@ -1,0 +1,38 @@
+# ML-Agents PPO Training Configuration for Snake Game
+# This file tells the Python trainer how to train the neural network
+
+behaviors:
+  SnakeBehavior:  # MUST match the Behavior Name in Unity's Behavior Parameters component
+    trainer_type: ppo  # Use Proximal Policy Optimization algorithm (stable, industry-standard for game AI)
+
+    hyperparameters:
+      # ===== EXPERIENCE COLLECTION =====
+      batch_size: 64  # Number of experiences per training update. Larger = smoother but slower learning
+      buffer_size: 2048  # Total steps to collect before training. Larger = more stable but more memory
+
+      # ===== LEARNING RATE (how aggressive to update weights) =====
+      learning_rate: 3.0e-4  # 0.0003 - standard PPO value. Too high = unstable. Too low = slow learning
+      learning_rate_schedule: linear  # Decay learning rate linearly from max to 0 as training progresses
+
+      # ===== EXPLORATION vs EXPLOITATION =====
+      beta: 5.0e-3  # 0.005 - entropy bonus encouraging exploration. Increase if agent gets stuck in loops
+      epsilon: 0.2  # 20% - max allowed policy change per update. Larger = faster but riskier. PPO's core safety mechanism
+
+      # ===== ADVANTAGE ESTIMATION =====
+      lambd: 0.95  # GAE lambda (0 to 1): balance between actual rewards vs estimated. Keep near 0.95
+      num_epoch: 3  # Reuse collected data this many times for training. Higher = more learning from same data, but may overfit
+
+    network_settings:
+      normalize: false  # Normalize observations? No, our observations are already 0-1 (binary/one-hot)
+      hidden_units: 128  # Neurons per hidden layer. Larger = more complex but slower. 128 is small, good for 11 inputs
+      num_layers: 2  # Number of hidden layers. 2 = good balance. More = slower training with diminishing returns
+
+    reward_signals:
+      extrinsic:  # Use the rewards defined in SnakeAgent.cs (no auxiliary rewards)
+        gamma: 0.99  # Discount factor: 0.99 means future rewards are worth 99% as much as immediate rewards. High = plan far ahead
+        strength: 1.0  # Multiplier for reward magnitude. 1.0 = use rewards as-is. Increase if learning is too slow
+
+    # ===== TRAINING TERMINATION =====
+    max_steps: 2000000  # Stop training after 2M steps (~30-60 min). Raise if still improving at the end
+    time_horizon: 64  # Look-ahead window for advantage calculation (credit assignment). Raise to 128 if episodes are long
+    summary_freq: 10000  # Write TensorBoard stats every 10k steps. Lower = more detailed graphs but larger files
