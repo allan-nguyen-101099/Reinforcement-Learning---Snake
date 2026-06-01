@@ -26,7 +26,7 @@ public class Movement : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.RightArrow))
             direction = Vector2.right;
     }
-git 
+
     void FixedUpdate()
     {
         transform.Translate(direction * moveSpeed * Time.fixedDeltaTime);
