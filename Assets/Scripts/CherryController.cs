@@ -2,9 +2,11 @@ using UnityEngine;
 
 public class CherryController : MonoBehaviour
 {
-    public GameObject cherryPrefab;   // assign Cherry prefab in Inspector
-    private GameObject currentCherry;
+    public GameObject cherryPrefab;
+    public Snake snake;
 
+    private GameObject currentCherry;
+    private SnakeAgent agent;
     private float boundaryX;
     private float boundaryY;
 
@@ -12,43 +14,55 @@ public class CherryController : MonoBehaviour
     {
         boundaryY = Camera.main.orthographicSize;
         boundaryX = boundaryY * Camera.main.aspect;
-
         SpawnCherry();
     }
 
+    public void RegisterAgent(SnakeAgent a) => agent = a;
+
+    public GameObject GetCurrentCherry() => currentCherry;
+
     public void SpawnCherry()
     {
-        float x = Random.Range(-boundaryX + 1, boundaryX - 1);
-        float y = Random.Range(-boundaryY + 1, boundaryY - 1);
-        Vector3 spawnPos = new Vector3(x, y, 0);
+        Vector3 spawnPos;
+        int attempts = 0;
+        do
+        {
+            float x = Random.Range(-boundaryX + 1, boundaryX - 1);
+            float y = Random.Range(-boundaryY + 1, boundaryY - 1);
+            spawnPos = new Vector3(x, y, 0);
+            attempts++;
+        }
+        while (IsInsideObstacle(spawnPos) && attempts < 100);
 
         if (currentCherry != null)
-        {
             Destroy(currentCherry);
-        }
 
         currentCherry = Instantiate(cherryPrefab, spawnPos, Quaternion.identity);
         currentCherry.name = "Cherry";
 
-        // Ensure collider is 2D
-        BoxCollider2D collider = currentCherry.GetComponent<BoxCollider2D>();
-        if (collider == null)
-        {
-            collider = currentCherry.AddComponent<BoxCollider2D>();
-        }
-        collider.isTrigger = true;
+        BoxCollider2D col = currentCherry.GetComponent<BoxCollider2D>();
+        if (col == null)
+            col = currentCherry.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
 
-        // Attach collision script
-        CherryCollision cherryCollision = currentCherry.GetComponent<CherryCollision>();
-        if (cherryCollision == null)
-        {
-            cherryCollision = currentCherry.AddComponent<CherryCollision>();
-        }
-        cherryCollision.controller = this;
+        CherryCollision cc = currentCherry.GetComponent<CherryCollision>();
+        if (cc == null)
+            cc = currentCherry.AddComponent<CherryCollision>();
+        cc.controller = this;
     }
 
     public void OnCherryEaten()
     {
+        snake.Grow();
         SpawnCherry();
+        agent?.NotifyCherryEaten();
+    }
+
+    private bool IsInsideObstacle(Vector3 pos)
+    {
+        Collider2D hit = Physics2D.OverlapCircle(pos, 0.5f);
+        if (hit != null && hit.GetComponent<ObstacleCollision>() != null)
+            return true;
+        return snake.IsNearSnake(pos, 0.5f);
     }
 }
