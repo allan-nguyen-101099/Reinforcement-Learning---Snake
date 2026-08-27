@@ -1,0 +1,57 @@
+// -------------------------------------------
+// 	    Borrowing
+// -------------------------------------------
+/*
+- Borrrowing Rules
+    - At any time, you can have either one mutable reference or any number of immutable references.
+    - References must always be valid.
+*/
+
+/*
+- Solve out two problems
+    - Data race
+    - Dangling references
+*/
+
+fn main() {
+    let mut vec_1 = vec![4, 5, 6];
+    let ref1 = &vec_1;
+    let ref2 = &vec_1;
+    println!("ref1: {:?}, ref2: {:?}", ref1, ref2);
+    let ref3 = &mut vec_1;
+
+    /*
+       Violations of rule 1
+       1 - Multiple mutable references at the same time
+       2 - Coexistence of mutable and immutable references
+    */
+
+    let vec_2 = {
+        let vec_3 = vec![1, 2, 3];
+        &vec_3
+    };
+}
+/*
+------------------------------------------------------------------------------------------------------------
+Concepts                         | Explanations                                                                                                                                                                                                                     |
+------------------------------------------------------------------------------------------------------------
+Borrowing                        | Creating a reference to a value without taking ownership.
+
+Need for Borrowing               | Improves memory efficiency
+                                 | Useful when ownership transfer is not required such as read only access
+Borrowing Rules
+Rule 1                           | Ensure either one mutable reference or
+                                 | Multiple immutable references, but not both
+                                 | It prevents data races to occur
+
+Voilations to Rule 1             | When multiple mutable references exists at the same time
+                                 | When mutable and immutable references coexistence
+
+Rule 2                           | References must always be valid
+                                 | This prevents dangling references
+
+Voilation to Rule 2              | A reference to a value that does not exist
+
+Scope of References              | Starts from the line it is defined until its last use
+------------------------------------------------------------------------------------------------------------
+ */

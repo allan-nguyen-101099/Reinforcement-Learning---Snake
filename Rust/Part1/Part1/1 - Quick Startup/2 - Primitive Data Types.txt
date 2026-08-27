@@ -1,0 +1,123 @@
+// -------------------------------------------------
+// 			- Basic Data Types
+// 	 			- Integers
+// 				- Floats
+// 				- Chars
+// 				- Boolean
+// -------------------------------------------------
+fn main() {
+    // ── Unsigned Integers ──────────────────────────────────────────────────
+    // Unsigned = only NON-NEGATIVE whole numbers (0 and above; no negatives).
+    //
+    // `let`           → keyword: declares a new variable
+    // `unsigned_num`  → variable name (chosen by you)
+    // `:`             → type annotation separator
+    // `u8`            → UNSIGNED 8-bit integer; range: 0 to 255
+    //                   "u" = unsigned, "8" = uses 8 bits of storage
+    //                   Other unsigned sizes: u16 (0–65,535), u32 (0–4B), u64, u128
+    // `=`             → assignment operator
+    // `5`             → integer literal value
+    // `;`             → ends the statement
+    let unsigned_num: u8 = 5; // Other unsigned sizes: u16, u32, u64, u128
+
+    // ── Signed Integers ────────────────────────────────────────────────────
+    // Signed = can hold BOTH positive AND negative whole numbers.
+    //
+    // `i8`            → SIGNED 8-bit integer; range: -128 to 127
+    //                   "i" = integer (signed), "8" = 8 bits of storage
+    //                   Other sizes: i16, i32 (DEFAULT integer type), i64, i128
+    //                   When no type is annotated, Rust defaults to i32
+    let signed_num: i8 = 5; // Other signed sizes: i16, i32, i64, i128
+
+    // ── Floating-Point Numbers ─────────────────────────────────────────────
+    // Floating-point = numbers with a decimal point (fractional values).
+    //
+    // `f32`           → 32-bit floating-point (single precision)
+    //                   Other size: f64 (64-bit, double precision — the DEFAULT float)
+    // `5.0`           → a floating-point LITERAL
+    //                   The `.0` is REQUIRED; `5` alone would be an integer literal
+    let float_num: f32 = 5.0; // f64 is the default float type (omitting annotation gives f64)
+
+    // ── Platform-Specific Integers ─────────────────────────────────────────
+    // `usize` and `isize` change their bit-width based on the target CPU architecture:
+    //   - On a 64-bit system → usize/isize are 64 bits
+    //   - On a 32-bit system → usize/isize are 32 bits
+    // Commonly used for array indexing and memory-related operations.
+    //
+    // `usize`         → unsigned platform-specific integer (used for indices/sizes)
+    // `isize`         → signed platform-specific integer
+    let arch_1: usize = 5;
+    let arch_2: isize = 5;
+
+    // ── Characters ─────────────────────────────────────────────────────────
+    // A `char` in Rust stores a single Unicode scalar value (4 bytes in memory).
+    // It supports letters, digits, symbols, and even emoji.
+    //
+    // `char`          → variable name (avoid using type names as variable names in practice)
+    // `'a'`           → a CHAR LITERAL written in SINGLE QUOTES
+    //                   IMPORTANT: single quotes ' = char, double quotes " = string
+    let char = 'a';
+
+    // ── Boolean ────────────────────────────────────────────────────────────
+    // A boolean holds exactly one of two values: `true` or `false`.
+    // Used as conditions in `if`, `while`, `match`, etc.
+    //
+    // `bool`          → the boolean type
+    // `true`          → one of the two boolean literals (the other is `false`)
+    let b: bool = true;
+
+    // ── Type Aliasing ──────────────────────────────────────────────────────
+    // Type aliasing creates a new READABLE NAME for an existing type.
+    // It does NOT create a new type — it is purely a rename for clarity.
+    //
+    // `type`          → keyword: starts a type alias declaration
+    // `Age`           → the new alias name (convention: PascalCase for type names)
+    // `=`             → assigns the existing type to the alias
+    // `u8`            → the underlying type that `Age` is an alias for
+    type Age = u8;
+
+    // `peter_age: Age` → declares a variable of type `Age` (identical to `u8` under the hood)
+    // `= 42`           → assigns value 42 (valid since u8 range is 0–255)
+    let peter_age: Age = 42;
+
+    // ── Type Conversion ────────────────────────────────────────────────────
+    // Rust does NOT perform IMPLICIT type conversions (no automatic casting).
+    // You must use the `as` keyword to EXPLICITLY convert between numeric types.
+    //
+    // `a`             → integer 10; type is inferred as i32 (default integer type)
+    let a = 10;
+
+    // `let b`         → new variable (shadows the `bool b` declared earlier)
+    // `a as f64`      → `as` is the CAST keyword: converts `a` (i32) into f64 (float)
+    //                   Result: `b` holds 10.0 (same numeric value, now as a float)
+    //                   NOTE: `as` can lose precision or truncate for some type pairs,
+    //                   so use it only when you know the conversion is safe.
+    let b = a as f64;
+}
+
+
+/*
+Summary
+-----------------------------------------------------------------------------------------------------------------------------
+Data Type                  | Description
+-----------------------------------------------------------------------------------------------------------------------------
+Unsigned Integers          | Whole numbers ≥ 0, represented using u8, u16, u32, u64, u128,
+                           | larger bits = wider positive range
+Signed Integers            | Both positive & negative numbers, represented using i8, i16, i32, i64, i128,
+                           | i32 is default
+Floating-Point             | Decimal or fractional values, represented using f32 and f64 (being default).
+usize / isize              | Platform-specific integers, size depends on system architecture,
+                           | used for indexing/memory
+char                       | Stores a single Unicode character, supports letters, digits, symbols, and emojis,
+                           | written in single quotes
+bool                       | Holds true or false, used in conditionals 
+-----------------------------------------------------------------------------------------------------------------------------
+Additional Concepts
+-----------------------------------------------------------------------------------------------------------------------------
+Concept                    | Description
+-----------------------------------------------------------------------------------------------------------------------------
+Primitive Types            | Built-in types that form the foundation for all other data types
+Type Aliasing              | Creating a meaningful name for an existing type using the `type` keyword.
+Type Conversion            | Changing a value from one type to another using the `as` keyword.
+-----------------------------------------------------------------------------------------------------------------------------
+*/

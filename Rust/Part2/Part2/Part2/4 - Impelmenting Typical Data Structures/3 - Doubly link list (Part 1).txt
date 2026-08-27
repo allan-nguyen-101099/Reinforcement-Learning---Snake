@@ -1,0 +1,86 @@
+// -------------------------------------------
+// 		Doubly Link List (Part 1)
+// -------------------------------------------
+
+use std::{cell::RefCell, rc::Rc};
+
+#[derive(Debug)]
+struct Doubly_Linklist {
+    head: pointer,  // first node — None if the list is empty
+    tail: pointer,  // last node — needed for O(1) tail access
+}
+
+#[derive(Debug)]
+struct Node {
+    element: i32,
+    next: pointer,  // points FORWARD to the next node
+    prev: pointer,  // points BACKWARD to the previous node
+}
+
+// Rc<RefCell<Node>>:
+// Rc     — allows multiple owners (both head/tail and neighboring nodes can own the same node)
+// RefCell — allows interior mutability (we can mutate prev/next even through shared ownership)
+type pointer = Option<Rc<RefCell<Node>>>;  // type alias for readability
+
+impl Doubly_Linklist {
+    fn new() -> Self {
+        Doubly_Linklist {
+            head: None,  // empty list — no head
+            tail: None,  // empty list — no tail
+        }
+    }
+
+    fn add(&mut self, element: i32) {
+        let new_head = Node::new(element);  // create new node wrapped in Rc<RefCell<Node>>
+
+        match self.head.take() {  // take() removes old head, returns it as Option
+            Some(old_head) => {
+                // List had nodes — wire up the new node at the front
+                old_head.borrow_mut().prev = Some(new_head.clone()); // old head's prev = new node
+                //                  ^^^^^^^^^^^^ .borrow_mut() = get mutable access through RefCell
+                new_head.borrow_mut().next = Some(old_head.clone()); // new head's next = old head
+                self.head = Some(new_head);  // update head
+            }
+
+            None => {
+                // List was empty — new node is both head and tail
+                self.tail = Some(new_head.clone());  // .clone() on Rc increments reference count
+                self.head = Some(new_head);
+            }
+        }
+    }
+}
+
+impl Node {
+    fn new(element: i32) -> Rc<RefCell<Node>> {  // returns Rc<RefCell<Node>> for shared ownership
+        Rc::new(RefCell::new(Node {
+            element: element,
+            next: None,
+            prev: None,
+        }))
+    }
+}
+fn main() {}
+
+
+/* 
+---------------------------------------------------------------------------------------------------------
+Concept / Topic     | Explanation
+--------------------|------------------------------------------------------------------------------------
+Doubly Linked List  | It allows navigation in both forward and backward directions.
+                    | Each node contains two pointers: one to the next node and one to the previous node.
+                    | The list maintains explicit references to both the head and the tail nodes.
+
+Multiple Ownership  | The doubly link list requires multiple ownership with mutability access. 
+with Mutability     | The Rc smart pointer allow multiple owners of the same data. 
+                    | However, we it does not provide mutablity access.  
+                    | Wrapping nodes inside Rc<RefCell<Node>> allows multiple owners to mutate the Node.
+
+Node definition     | The node structure is extended to include both next and previous pointers.
+                    | The wrapper list structure now stores both head and tail references.
+
+Adding a Node       | If the list is empty, the new node becomes both the head and the tail.
+at the Front        | If the list already has a head, the previous of old head is updated.
+                    | Additionally, the next of new node is set to the old head and the head is updated.                 
+-----------------------------------------------------------------------------------------------------------
+*/

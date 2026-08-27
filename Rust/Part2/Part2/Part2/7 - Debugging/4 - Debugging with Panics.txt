@@ -1,0 +1,48 @@
+// -------------------------------------------
+// 	        Debugging with Panics
+// -------------------------------------------
+
+use std::panic::set_hook;  // set_hook — lets you customize what happens when a panic occurs
+
+fn handle_request() {
+    println!("Handling login request ....");
+    process_login("Alice", "");  // empty password — will cause a panic deep in the call stack
+}
+
+fn process_login(username: &str, password: &str) {
+    println!("Processing login for user: {}", username);
+    check_credentials(username, password);
+}
+
+fn check_credentials(username: &str, password: &str) {
+    println!("Checking credentials for {}", username);
+    let hashed = hash_password(password);  // will panic if password is empty
+    println!("Hashed password: {}", hashed);
+}
+
+fn hash_password(password: &str) -> String {
+    if password.is_empty() {
+        panic!("Password cannot be empty!");  // panic! — immediately unwinds the call stack
+                                              // RUST_BACKTRACE=1 shows the full call stack
+    }
+    format!("hashed_{}", password)  // format! — creates a String with formatted text
+}
+
+fn main() {
+    // set_hook — replaces the default panic handler with a custom one
+    // The closure receives PanicInfo: contains message, file, and line info
+    set_hook(Box::new(|info| {           // Box::new — heap-allocates the closure
+        let message = info.payload().downcast_ref::<&str>();  // extract the panic message as &str
+        //                  ^^^^^^^^^ .payload() returns the panic value as &dyn Any
+        //                            .downcast_ref::<&str>() tries to cast it to &str
+
+        match message {
+            Some(&"Database error") => println!("Panicked due to DB Error"),
+            Some(&"Config missing") => println!("Panicked due to missing configuration info"),
+            Some(msg) => println!("General panic: {}", msg),
+            None => println!("Unknown panic"),  // panic value wasn't a &str
+        }
+    }));
+
+    panic!();  // triggers the custom hook above — empty panic, message = None
+}

@@ -1,0 +1,115 @@
+pub fn welcome(x: i32, y: i32) {
+    println!("Welcome to math library")
+}
+
+#[cfg(feature = "basic_math")]
+pub mod basic_math {
+    pub fn add(a: f64, b: f64) -> f64 {
+        a + b
+    }
+
+    pub fn subtract(a: f64, b: f64) -> f64 {
+        a - b
+    }
+
+    pub fn multiply(a: f64, b: f64) -> f64 {
+        a * b
+    }
+
+    pub fn divide(a: f64, b: f64) -> f64 {
+        if b != 0.0 {
+            a / b
+        } else {
+            panic!("Division by zero")
+        }
+    }
+}
+
+#[cfg(feature = "stat")]
+pub mod statistics {
+    use crate::basic_math;
+
+    pub fn mean(data: &[f64]) -> f64 {
+        let sum: f64 = data.iter().sum();
+        sum / data.len() as f64
+    }
+
+    pub fn variance(data: &[f64]) -> f64 {
+        let mean = mean(data);
+        let sum_of_squares: f64 = data
+            .iter()
+            .map(|value| {
+                let diff = basic_math::subtract(*value, mean);
+                basic_math::multiply(diff, diff)
+            })
+            .sum();
+        basic_math::divide(sum_of_squares, data.len() as f64) // Use this for population variance
+    }
+}
+
+#[cfg(feature = "advance_math")]
+pub mod advance_math {
+    use rust_math::num;
+    pub fn sqrt(num: f32) {
+        println!("Square root of {num} is: {}", num::sqrt(num));
+    }
+
+    pub fn abs(num: f32) {
+        println!("Absolute value of {} is: {}", num, num::abs(num));
+    }
+
+    pub fn factorial(num: i32) {
+        println!("Factorial of {} is: {}", num, num::factorial(num));
+    }
+
+    pub fn is_prime(num: i32) {
+        println!("Is {} a prime number? {}", num, num::is_prime(num));
+    }
+
+    pub fn gcd(a: i32, b: i32) {
+        println!("GCD of {} and {} is: {}", a, b, num::gcd(a, b));
+    }
+
+    pub fn lcm(a: i32, b: i32) {
+        println!("LCM of {} and {} is: {}", a, b, num::lcm(a, b));
+    }
+
+    pub fn prime_factors(num: i32) {
+        let factors = num::prime_factor(num);
+        println!("Prime factors of {} are: {:?}", num, factors);
+    }
+}
+
+#[cfg(feature = "matrix")]
+pub mod matrix {
+    use nalgebra::DMatrix;
+    pub fn matrix_multiply(a: &DMatrix<f64>, b: &DMatrix<f64>) -> DMatrix<f64> {
+        a * b
+    }
+
+    pub fn matrix_inverse(a: &DMatrix<f64>) -> Option<DMatrix<f64>> {
+        a.clone().try_inverse()
+    }
+}
+
+
+
+// code for Cargo.toml
+[package]
+name = "rust_course"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rust_math = {version  = "0.3.7", optional = true} 
+nalgebra = {version  = "0.33.0", optional = true}
+
+
+[features]  
+default = ["basic_math"]
+advance_math = ["dep:rust_math"]
+basic_math = [] 
+stat = ["basic_math"]
+matrix = ["dep:nalgebra"]

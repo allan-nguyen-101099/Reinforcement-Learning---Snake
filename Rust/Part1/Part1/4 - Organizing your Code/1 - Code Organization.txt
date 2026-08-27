@@ -1,0 +1,24 @@
+/*
+-------------------------------------------------------------------------------------------------------------------
+Topic                            | Explanation / Details
+---------------------------------|---------------------------------------------------------------------------------
+1. Code Organization in Rust     | - Proper code organization improves readability, maintainability, and scalability.
+                                 | - Rust uses a structured hierarchy of packages, crates, and modules.
+
+2. Packages                      | - Packages are the highest level of organization in Rust.
+                                 | - Packages are created using the "cargo new" command.
+                                 | - Each package may contain atleast one crate.
+                                 | - A package can have multiple binary crates but only one library crate.
+                                 | - The Cargo.toml file manages metadata, dependencies, build settings, and features.
+
+3. Crates                        | - A crate is a compilation unit that organizes code into a hierarchy of modules.
+                                 | - Binary crates produce executables (main.rs as entry point).
+                                 | - Library crates produce reusable libraries (lib.rs as crate root).
+                                 | - Cargo treats main.rs and lib.rs as crate roots based on naming conventions.
+                                 | - Multiple binary crates can exist inside a `bin` folder within the src directory.
+
+4. Modules                       | - Modules group related items like functions and structures at a finer level.
+                                 | - They define scope and privacy of code components.
+                                 | - Modules can be nested hierarchically to build organized trees of functionality.
+-------------------------------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,116 @@
+// -------------------------------------------------
+// 			Comments
+// 			More on Printing
+// -------------------------------------------------
+fn main() {
+    // ── Comments ─────────────────────────────────────────────────────────────
+
+    // `//`         → starts a SINGLE-LINE comment
+    //               Everything after `//` on the same line is IGNORED by the compiler
+    //               Used to explain code, leave notes, or temporarily disable a line
+
+    // The current line is a comment line
+    // This is a second line of comment
+
+    // `/* ... */`  → starts and ends a MULTI-LINE (block) comment
+    //               Everything BETWEEN `/*` and `*/` is ignored by the compiler
+    //               Useful for longer descriptions or commenting out many lines at once
+    /* This is a
+    multi-line
+    comment
+    */
+
+    // ── Printing ───────────────────────────────────────────────────────────
+
+    // `print!`     → MACRO: prints text to the console WITHOUT a newline at the end
+    //               The cursor stays on the same line after printing
+    // `!`          → marks this as a MACRO call (macros end with `!`, functions do not)
+    // `(`          → opens the argument list
+    // `"..."`      → string literal: the text to output
+    // `)`          → closes the argument list
+    // `;`          → ends the statement
+    print!("This is a print command");
+
+    // Since `print!` adds NO newline, the next output appears on the SAME LINE:
+    print!("This is going to be printed on the same line");
+    // Combined output: "This is a print commandThis is going to be printed on the same line"
+
+    // ── Escape Sequences ────────────────────────────────────────────────────
+    // An escape sequence starts with `\` (backslash) + a special character.
+    // Together they represent a special formatting control inside a string.
+    //
+    // `\` = the ESCAPE CHARACTER; the character that follows gives it special meaning:
+    //
+    /*
+    \n : Newline character       → moves the cursor to the NEXT LINE (like pressing Enter)
+    \t : Tab space               → inserts a horizontal tab (indentation)
+    \r : Carriage Return         → moves the cursor to the START of the current line
+                                   (overwrites text that was printed before it on that line)
+    \" : Double quote            → prints a literal " inside a string (without ending the string)
+    \\ : Backward slash         → prints a literal \ inside a string
+    */
+
+    // `"\n ..."`    → the `\n` at the start causes a blank line before the text
+    println!("\n will be printed after one empty line");
+    // Output: (blank line), then " will be printed after one empty line"
+
+    // `"\t ..."`    → the `\t` inserts a tab space at the beginning of the output
+    println!("\t A tab space at the start");
+    // Output: "    A tab space at the start" (tab-indented)
+
+    // `\r` moves the cursor back to the START of the current line in the terminal.
+    // Text BEFORE `\r` gets overwritten by text AFTER `\r`:
+    println!("This will be overwritten \r This text will only appear on the screen");
+    // In a terminal: "This will be overwritten" is printed, then cursor resets,
+    // then " This text will only appear on the screen" overwrites it.
+
+    // `\"`          → inserts a literal double-quote character inside the string
+    // `\\`          → inserts a literal backslash character inside the string
+    println!("Prints double quotes \", Prints backslash \\");
+    // Output: Prints double quotes ", Prints backslash \
+
+    // ── Positional Arguments ───────────────────────────────────────────────────
+    // `{}`          → an ANONYMOUS format placeholder
+    //               Each `{}` in the format string is replaced by the corresponding argument
+    //               in the order they appear (left to right)
+    //
+    // After the format string, arguments are listed separated by `,`:
+    //   First `{}`  → replaced by "like"
+    //   Second `{}` → replaced by 20
+    //   Third `{}`  → replaced by "programming"
+    println!(
+        "I am doing {} from {} year and i {} it",
+        "like", 20, "programming"
+    );
+    // Output: "I am doing like from 20 year and i programming it"
+
+    // ── Named Arguments ──────────────────────────────────────────────────────
+    // `{language}` and `{activity}` → NAMED format placeholders
+    // Named arguments use `name = value` syntax AFTER the format string
+    // The ORDER of named arguments does NOT matter — Rust matches by name, not position
+    //
+    // `activity = "code"`   → names the argument "activity" with value "code"
+    // `language = "Rust"`   → names the argument "language" with value "Rust"
+    println!(
+        "{language} is a system programming language which is cool to {activity} in",
+        activity = "code",
+        language = "Rust"
+    );
+    // Output: "Rust is a system programming language which is cool to code in"
+}
+
+/*
+Summary
+---------------------------------------------------------------------------------------------------
+Topic                      | Summary
+---------------------------|-----------------------------------------------------------------------
+Comments                   | Notes ignored by the compiler that help explain code
+                           | Can be single-line or multi-line
+Printing Basics            | print! prints on the same line
+                           | println! prints on a new line
+Escape Sequences           | Backslash-based codes for special formatting like newline, tab, and carriage return
+Printing Special Characters| Use backslash before quotes or backslash itself to print them literally
+Positional Arguments       | Use numbered placeholders {0}, {1} to control argument order in output
+Named Arguments            | Use named placeholders {name} and arguments are in name = value syntax
+---------------------------|-----------------------------------------------------------------------
+*/

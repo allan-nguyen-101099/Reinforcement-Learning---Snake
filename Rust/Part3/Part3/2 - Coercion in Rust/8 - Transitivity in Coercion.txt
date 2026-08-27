@@ -1,0 +1,57 @@
+// -------------------------------------------
+// 	      Transitivity in Coercion
+// -------------------------------------------
+
+// A -> B and B -> C then A -> C
+
+use std::ops::Deref;
+
+struct Book {
+    name: String,
+    authors: String,
+    publication_year: u32,
+}
+
+impl Deref for Book {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.name
+    }
+}
+
+fn print_str(s: &str) {
+    println!("{}", s);
+}
+fn main() {
+    let my_book = Book {
+        name: String::from("Rust Programming"),
+        authors: String::from("Nouman Azam"),
+        publication_year: 2020,
+    };
+
+    // Transitive Deref Coercion Chain:
+    // &Book -> &String -> &str
+
+    // my_book.deref() -> &String
+    // my_book.deref().deref() -> &str
+
+    // &Box<Book> -> &Book -> &String -> &str
+    print_str(&Box::new(my_book));
+}
+
+
+/* 
+------------------------------------------------------------------------------------------------------------
+Concept / Topic          | Explanation
+-------------------------|----------------------------------------------------------------------------------
+Transitivity in Coercion | It allows Rust to apply multiple coercions in sequence.
+                         | If A -> B and B -> C, then A -> C.
+                         | Commonly happens in deref coercion. 
+
+Role of Deref Trait      | Transitive coercion commonly relies on successive Deref implementations.
+                         | Each deref step produces an intermediate reference that may be coerced further.
+                         | The coercion chains can be further extended also.    
+
+Key Benefit              | It enables seamless APIs without explicit intermediate conversions.
+------------------------------------------------------------------------------------------------------------
+ */

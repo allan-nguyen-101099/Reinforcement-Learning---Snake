@@ -1,0 +1,81 @@
+// ---------------------------------------------------
+// 	   Chaining with Question Mark
+//          Prerequisite: Method Chaining Constraints
+// ---------------------------------------------------
+struct Order {
+    item_count: i32,
+    price_per_item: f64,
+    balance: f64,
+    completed: bool,
+}
+
+#[derive(Debug)]
+enum OrderError {
+    InvalidOrder,
+    PayementFailed,
+    ShippingError,
+}
+
+impl Order {
+    // validate() borrows &self, returns Ok(&Self) or Err
+    fn validate(&self) -> Result<&Self, OrderError> {
+        if self.item_count == 0 {
+            Err(OrderError::InvalidOrder)  // invalid — return Err variant
+        } else {
+            Ok(self)  // valid — return &Self wrapped in Ok for chaining
+        }
+    }
+
+    // process_payement() borrows &mut self, modifies balance
+    fn process_payement(&mut self) -> Result<&mut Self, OrderError> {
+        let total_price = self.item_count as f64 * self.price_per_item;  // as f64 — cast i32 to f64
+        if self.balance < total_price {
+            Err(OrderError::PayementFailed)
+        } else {
+            self.balance -= total_price;  // deduct payment
+            Ok(self)  // return &mut Self for further chaining
+        }
+    }
+
+    fn ship_order(&mut self) -> Result<&mut Self, OrderError> {
+        if self.item_count > 10 {
+            Err(OrderError::ShippingError)  // too many items to ship
+        } else {
+            self.completed = true;  // mark order done
+            Ok(self)
+        }
+    }
+
+    // complete_order() chains all steps using ?
+    // If any step returns Err, ? returns early from complete_order with that Err
+    fn complete_order(&mut self) -> Result<(), OrderError> {
+        self.validate()?;  // ? — if Err, return early; if Ok, unwrap and continue
+        self.process_payement()?.ship_order()?;  // chain: payement returns &mut Self -> ship_order called on it
+        Ok(())  // all steps succeeded — return Ok with unit value
+    }
+}
+fn main() {
+    let mut order = Order {
+        item_count: 5,
+        price_per_item: 20.0,
+        balance: 200.0,
+        completed: false,
+    };
+
+    match order.complete_order() {
+        Ok(_) => println!("Order completed successfully"),
+        Err(e) => println!("Order processing failed: {:?}", e),
+    }
+}
+
+/*
+----------------------------------------------------------------------------------------------------
+Concept/Topic               | Explanation
+----------------------------|-----------------------------------------------------------------------
+Method Chaining with ?      | Improve readability by chaining multiple fallable operations.
+
+Chaining with ? constraints | Relies on Rust’s method chaining principles.
+                            | Requires compatible return types between chained calls.
+                            | Must respect borrowing and mutability constraints.
+----------------------------------------------------------------------------------------------------
+ */

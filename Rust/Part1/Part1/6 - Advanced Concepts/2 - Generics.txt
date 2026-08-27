@@ -1,0 +1,151 @@
+// -------------------------------------------
+//              Generics
+// -------------------------------------------
+
+// Generics let you write code that works for many different types
+// without duplicating the logic.
+// The compiler generates a specific version for each type used — called MONOMORPHIZATION.
+// Zero runtime cost — like C++ templates.
+
+// -------------------------------------------
+// 1. Generic Functions
+// -------------------------------------------
+
+// Without generics — you'd need separate functions per type:
+// fn largest_i32(list: &[i32]) -> &i32 { ... }
+// fn largest_f64(list: &[f64]) -> &f64 { ... }
+
+// With generics — one function works for any type T that implements PartialOrd
+fn largest<T: PartialOrd>(list: &[T]) -> &T {
+    //      ^               ^
+    //      type parameter  trait bound (T must support > comparison)
+    let mut largest = &list[0];
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+    largest
+}
+
+// -------------------------------------------
+// 2. Generic Structs
+// -------------------------------------------
+
+struct Point<T> {           // T can be any type
+    x: T,
+    y: T,
+}
+
+struct MixedPoint<T, U> {   // two different type parameters
+    x: T,
+    y: U,
+}
+
+// impl for a generic struct
+impl<T> Point<T> {
+    fn x(&self) -> &T {
+        &self.x
+    }
+}
+
+// impl only for a SPECIFIC type (concrete specialization)
+impl Point<f64> {
+    fn distance_from_origin(&self) -> f64 {
+        (self.x * self.x + self.y * self.y).sqrt()
+    }
+}
+
+// -------------------------------------------
+// 3. Generic Enums (you already know these!)
+// -------------------------------------------
+
+// Option<T> and Result<T, E> from the standard library are generic enums:
+// enum Option<T> { Some(T), None }
+// enum Result<T, E> { Ok(T), Err(E) }
+
+// -------------------------------------------
+// 4. Generic Traits (Trait with associated type vs type parameter)
+// -------------------------------------------
+
+// Type parameter approach — caller specifies the type
+trait Converter<T> {
+    fn convert(&self) -> T;
+}
+
+struct Celsius(f64);
+struct Fahrenheit(f64);
+
+impl Converter<Fahrenheit> for Celsius {
+    fn convert(&self) -> Fahrenheit {
+        Fahrenheit(self.0 * 9.0 / 5.0 + 32.0)
+    }
+}
+
+// -------------------------------------------
+// 5. Multiple Trait Bounds and where Clause
+// -------------------------------------------
+
+use std::fmt::{Debug, Display};
+
+fn print_info<T: Debug + Display>(item: T) {
+    println!("Display: {}", item);
+    println!("Debug:   {:?}", item);
+}
+
+// Equivalent with where clause (cleaner for complex bounds):
+fn print_info_2<T>(item: T) where T: Debug + Display {
+    println!("{}", item);
+}
+
+// -------------------------------------------
+// 6. Generic Function Returning a Generic
+// -------------------------------------------
+
+fn first<T>(list: &[T]) -> Option<&T> {
+    if list.is_empty() { None } else { Some(&list[0]) }
+}
+
+fn main() {
+    let numbers = vec![10, 20, 5, 40, 3];
+    println!("Largest: {}", largest(&numbers));   // T = i32
+
+    let chars = vec!['a', 'z', 'm'];
+    println!("Largest: {}", largest(&chars));      // T = char
+
+    let p1 = Point { x: 5, y: 10 };              // T = i32
+    let p2 = Point { x: 1.0, y: 4.0 };           // T = f64
+    println!("Distance: {}", p2.distance_from_origin());
+
+    let mp = MixedPoint { x: 5, y: 3.14 };       // T = i32, U = f64
+}
+
+/*
+---------------------------------------------------------------------------------------------------------------
+Concept / Topic              | Explanation
+---------------------------------------------------------------------------------------------------------------
+What are Generics?           | - Write code once that works for multiple types.
+                             | - Compiler generates specific versions per type (monomorphization).
+                             | - Zero runtime overhead — like C++ templates.
+
+Syntax                       | - Type parameter in angle brackets: fn foo<T>(x: T)
+                             | - Multiple parameters: fn foo<T, U>(x: T, y: U)
+                             | - Struct: struct Point<T> { x: T, y: T }
+
+Trait Bounds                 | - Constrain what types T can be: fn largest<T: PartialOrd>(...)
+                             | - Without bounds, you can't call methods on T (compiler doesn't know what T supports).
+                             | - Multiple bounds: T: Debug + Display
+
+where Clause                 | - Alternative syntax for bounds — useful when bounds are complex.
+                             | - fn foo<T>(x: T) where T: Debug + Display { }
+
+Concrete impl (specialization)| - impl Point<f64> { } — adds methods ONLY for the f64 version of Point<T>.
+
+Generic Enums                | - Option<T> and Result<T, E> are built-in generic enums.
+                             | - You can define your own.
+
+Monomorphization             | - At compile time, Rust replaces T with each concrete type actually used.
+                             | - Results in fast, type-specific machine code.
+                             | - Downside: larger binary if many different types are used.
+---------------------------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,84 @@
+// -------------------------------------------
+// 	        Enums
+// -------------------------------------------
+// Enums: Multiple variants of a type
+
+// Enums versus Structs:
+// Struct fields have types
+// Enum variants have no types
+// enum WeekDays {
+//     Monday,
+//     Tuesday,
+//     Wednesday,
+//     Thursday,
+//     Friday,
+//     Saturday,
+//     Sunday,
+// }
+// fn main() {
+//     let mut day = "Sunday";
+
+//     let week_days = vec![
+//         "Monday",
+//         "Tuesday",
+//         "Wednesday",
+//         "Thursday",
+//         "Friday",
+//         "Saturday",
+//         "Sunday",
+//     ];
+
+//     let day = week_days[6];
+
+//     let day = WeekDays::Sunday;
+// }
+enum TravelType {
+    Car(f32),
+    Train(f32),
+    Aeroplane(f32),
+}
+
+impl TravelType {
+    fn travel_allowance(&self) -> f32 {
+        let allowance = match self {
+            TravelType::Car(miles) => miles * 2.0,
+            TravelType::Train(miles) => miles * 3.0,
+            TravelType::Aeroplane(miles) => miles * 5.0,
+        };
+        allowance
+    }
+}
+fn main() {
+    let participant = TravelType::Car(60.0);
+
+    println!(
+        "Allowance of participant is: {}",
+        participant.travel_allowance()
+    );
+}
+
+/*
+----------------------------------------------------------------------------------------------
+Concept                   | Details
+----------------------------------------------------------------------------------------------
+Motivation for Enums      | - Reduces risks of typos and invalid values.
+                          | - More effective than indexes (requires memorization)
+----------------------------------------------------------------------------------------------
+Defining Enums            | - Defined with the `enum` keyword followed by name.
+                          | - Enum names and variants follows UpperCamelCase convention.
+                          | - Variants do not need explicit type unless carrying data.
+---------------------------------------------------------------------------------------------
+Using Enums               | - Instances are created by specifying a variant.
+                          | - Variants are accessed with `EnumName::Variant`.
+                          | - Match expression is typically used to check enum variants.
+---------------------------------------------------------------------------------------------
+Enums vs Structs          | - Structs: each field has its own type.
+                          | - Enums: define multiple variants under one type.
+                          | - Both can have methods via implementation blocks.
+---------------------------------------------------------------------------------------------
+Attaching Data to Variants| - Variants can carry associated data.
+                          | - Associated data can differ in type across variants.
+                          | - Removes need to pass extra parameters to methods separately.
+---------------------------------------------------------------------------------------------
+
+*/

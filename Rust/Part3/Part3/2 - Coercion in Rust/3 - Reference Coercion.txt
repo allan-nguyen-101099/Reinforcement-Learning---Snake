@@ -1,0 +1,39 @@
+// -------------------------------------------
+// 	      Coercion
+// -------------------------------------------
+
+// Reference Coercion
+// &mut T -> &T
+// &T -> &mut T // not valid
+
+fn accepts_str(s: &String) -> &String {
+    println!("{s}");
+    s
+}
+fn main() {
+    let mut s = String::from("Some String");
+    let mut_ref = &mut s;
+    let s1 = accepts_str(mut_ref); // &mut String -> &String
+
+    // mut_ref.push('h');
+    println!("mut_ref: {}, immut_ref: {}", mut_ref, s1);
+
+    // reference coercion != reference casting
+}
+
+/*
+-------------------------------------------------------------------------------------------------------------
+Concept / Topic             | Explanation
+----------------------------|-----------------------------------------------------------------------------------
+Reference Coercion          | Reference coercion allows &mut ref -> &ref.
+                            | The coercion from &ref -> &mut ref is not possible.
+
+Usage of Reference Coercion | A mutable reference can be passed to a function expecting an immutable reference.
+
+Borrowing Rule Safety       | Reference coercion does not violate borrowing rules as long as no mutation occurs.
+                            | The compiler reports error only when mutation is attempted during an immutable borrow.
+
+Reference Coercion !=       | Reference coercion is automatic and enforced by the borrow checker.
+Reference Casting)          | Reference casting using the as keyword is an explicit and manual operation.
+-------------------------------------------------------------------------------------------------------------
+*/

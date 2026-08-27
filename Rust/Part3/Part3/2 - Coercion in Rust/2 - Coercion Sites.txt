@@ -1,0 +1,51 @@
+// -------------------------------------------
+// 	      Coercion Sites
+// -------------------------------------------
+
+// 3. Function return values
+fn returns_str(s: &String) -> &str {
+    println!("Returning, {s}!");
+    s
+}
+
+fn accepts_str(s: &str) {
+    println!("Hi, {s}!");
+}
+
+struct ContainsStr<'a> {
+    s: &'a str,
+}
+fn main() {
+    // 1. let binding
+    let s: &str;
+    s = &String::from("Some String");
+
+    // 2. Function argument
+    let s = String::from("Some String");
+    accepts_str(&s);
+
+    // 4. Struct field initialization
+    let s = ContainsStr {
+        s: &String::from("Some String"),
+    };
+}
+
+/*
+-------------------------------------------------------------------------------------------------------------
+Concept / Topic           | Explanation
+--------------------------|-----------------------------------------------------------------------------------
+Coercion Sites            | They are specific locations where Rust performs implicit type conversion.
+
+Common Coercion Sites
+1. Let Binding            | Coercion occurs  on the right-hand side of a let binding. 
+                          | It is allowed if assigned value has a compatible type with the declared variable type.
+                         
+2. Function Arguments     | Coercion occurs at the point where arguments are passed into a function. 
+                         
+3. Function Return Values | Coercion occurs at the final expression of a function body without a semicolon.
+
+4. Struct / Enum          | Coercion occurs when initializing struct, union, or enum fields.
+Field Initialization      | The assigned value is coerced to match the declared type of the field.
+--------------------------|-----------------------------------------------------------------------------------
+
+ */

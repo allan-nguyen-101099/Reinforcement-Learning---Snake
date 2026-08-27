@@ -1,0 +1,165 @@
+// -------------------------------------------
+//   Traits and Polymorphism (Rust's "Inheritance")
+// -------------------------------------------
+
+// Rust has NO class inheritance.
+// Instead it uses TRAITS — similar to interfaces in C++ / Java.
+// A trait defines a set of methods a type must implement.
+
+// -------------------------------------------
+// 1. Defining and Implementing a Trait
+// -------------------------------------------
+
+trait Drawable {
+    fn draw(&self);                          // required method — every implementor must define this
+    fn description(&self) -> String {        // default method — implementors can override or use as-is
+        String::from("I am a drawable shape")
+    }
+}
+
+struct Circle {
+    radius: f64,
+}
+
+struct Rectangle {
+    width: f64,
+    height: f64,
+}
+
+impl Drawable for Circle {
+    fn draw(&self) {
+        println!("Drawing Circle with radius {}", self.radius);
+    }
+    // description() not overridden — uses the default
+}
+
+impl Drawable for Rectangle {
+    fn draw(&self) {
+        println!("Drawing Rectangle {}x{}", self.width, self.height);
+    }
+    fn description(&self) -> String {       // override the default
+        String::from("I am a Rectangle")
+    }
+}
+
+// -------------------------------------------
+// 2. Trait as Function Parameter (static dispatch)
+// -------------------------------------------
+
+// impl Trait syntax — compiler generates a specific version for each type (monomorphization)
+// This is like C++ templates — faster, no runtime cost
+fn print_shape(shape: &impl Drawable) {
+    shape.draw();
+    println!("{}", shape.description());
+}
+
+// Trait bound syntax — equivalent to above, more explicit
+fn print_shape_2<T: Drawable>(shape: &T) {
+    shape.draw();
+}
+
+// Multiple trait bounds
+use std::fmt::Debug;
+fn print_shape_3<T: Drawable + Debug>(shape: &T) {
+    shape.draw();
+    println!("{:?}", shape);
+}
+
+// where clause — cleaner for complex bounds
+fn print_shape_4<T>(shape: &T) where T: Drawable + Debug {
+    shape.draw();
+}
+
+// -------------------------------------------
+// 3. Trait Objects — Dynamic Dispatch (runtime polymorphism)
+// -------------------------------------------
+
+// `dyn Trait` — like a C++ base class pointer, resolved at RUNTIME
+// Stored behind a pointer (Box, &) because size is unknown at compile time
+
+fn draw_all(shapes: &Vec<Box<dyn Drawable>>) {
+    for shape in shapes {
+        shape.draw();    // which draw() to call is decided at RUNTIME
+    }
+}
+
+fn main() {
+    let c = Circle { radius: 5.0 };
+    let r = Rectangle { width: 3.0, height: 4.0 };
+
+    print_shape(&c);
+    print_shape(&r);
+
+    // Dynamic dispatch — heterogeneous collection of different types
+    let shapes: Vec<Box<dyn Drawable>> = vec![
+        Box::new(Circle { radius: 1.0 }),
+        Box::new(Rectangle { width: 2.0, height: 3.0 }),
+    ];
+    draw_all(&shapes);
+}
+
+// -------------------------------------------
+// 4. Trait Inheritance (trait requiring another trait)
+// -------------------------------------------
+
+trait Animal {
+    fn name(&self) -> &str;
+}
+
+trait Pet: Animal {            // Pet requires Animal to be implemented too
+    fn owner(&self) -> &str;
+}
+
+struct Dog {
+    name: String,
+    owner: String,
+}
+
+impl Animal for Dog {
+    fn name(&self) -> &str { &self.name }
+}
+
+impl Pet for Dog {
+    fn owner(&self) -> &str { &self.owner }
+}
+
+// -------------------------------------------
+// 5. Returning a Trait (impl Trait in return position)
+// -------------------------------------------
+
+fn make_shape(big: bool) -> impl Drawable {
+    // Note: all return paths must return the SAME concrete type
+    Circle { radius: if big { 10.0 } else { 1.0 } }
+}
+
+/*
+---------------------------------------------------------------------------------------------------------------
+Concept / Topic              | Explanation
+---------------------------------------------------------------------------------------------------------------
+Trait                        | - Defines a shared interface (set of method signatures) for multiple types.
+                             | - Similar to C++ pure virtual base class or Java interface.
+                             | - A type can implement many traits (unlike single inheritance in C++).
+
+Default Methods              | - Traits can provide default implementations that implementors can override.
+                             | - If not overridden, the default is used automatically.
+
+impl Trait (static dispatch) | - Compiler generates specialized code per type — like C++ templates.
+                             | - Faster than dynamic dispatch. No runtime overhead.
+                             | - Type must be known at compile time.
+
+dyn Trait (dynamic dispatch) | - Resolved at runtime via a vtable — like C++ virtual functions.
+                             | - Allows heterogeneous collections (different types in one Vec).
+                             | - Must be behind a pointer: &dyn Trait or Box<dyn Trait>.
+                             | - Slight runtime overhead. Enables true polymorphism.
+
+Trait Bounds (<T: Trait>)    | - Constrain a generic so only types implementing the trait are accepted.
+                             | - Multiple bounds with + operator: T: Drawable + Debug.
+                             | - `where` clause keeps signatures readable for complex bounds.
+
+Trait Inheritance (Pet:Animal)| - One trait can require another. The implementor must implement both.
+                             | - NOT the same as class inheritance — no data inheritance, only method contracts.
+
+Why no class inheritance?    | - Rust avoids the complexity and bugs of deep inheritance hierarchies.
+                             | - Traits + composition achieve the same goals more explicitly and safely.
+---------------------------------------------------------------------------------------------------------------
+*/

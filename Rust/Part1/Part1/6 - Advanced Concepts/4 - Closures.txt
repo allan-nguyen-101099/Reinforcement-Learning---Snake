@@ -1,0 +1,195 @@
+// -------------------------------------------
+//              Closures
+// -------------------------------------------
+
+// A closure is an anonymous function that can CAPTURE variables from its surrounding scope.
+// Similar to lambdas in C++ or anonymous functions in other languages.
+// Closures are first-class values — they can be stored in variables, passed to functions, returned.
+
+// -------------------------------------------
+// 1. Basic Closure Syntax
+// -------------------------------------------
+
+fn main() {
+    // Full syntax (types can usually be inferred):
+    let add = |x: i32, y: i32| -> i32 { x + y };
+
+    // Inferred types (most common):
+    let add = |x, y| x + y;
+
+    // No parameters:
+    let greet = || println!("Hello!");
+
+    // Multi-line:
+    let square = |x: i32| {
+        let result = x * x;
+        result
+    };
+
+    println!("{}", add(3, 4));    // 7
+    greet();                       // Hello!
+    println!("{}", square(5));    // 25
+}
+
+// -------------------------------------------
+// 2. Capturing the Environment
+// -------------------------------------------
+
+// Closures can capture variables from the enclosing scope — functions CANNOT do this.
+
+fn capturing() {
+    let threshold = 10;           // variable in outer scope
+
+    let is_big = |x| x > threshold;   // captures `threshold` by REFERENCE (borrows it)
+
+    println!("{}", is_big(15));   // true
+    println!("{}", is_big(5));    // false
+    // threshold is still accessible here because closure only borrowed it
+}
+
+// -------------------------------------------
+// 3. Capture Modes — How Closures Capture
+// -------------------------------------------
+
+// Rust automatically picks the least restrictive capture mode needed:
+
+fn capture_modes() {
+    let name = String::from("Alice");
+
+    // By REFERENCE (&T) — closure borrows name, name still usable after
+    let greet = || println!("Hello, {}", name);
+    greet();
+    println!("{}", name);   // still accessible
+
+    // By MUTABLE REFERENCE (&mut T) — closure mutably borrows
+    let mut count = 0;
+    let mut increment = || { count += 1; };
+    increment();
+    increment();
+    // println!("{}", count);  // ERROR while `increment` exists — mutably borrowed
+    drop(increment);
+    println!("{}", count);   // OK now — 2
+
+    // By VALUE (move) — use `move` keyword to force ownership transfer into closure
+    let data = vec![1, 2, 3];
+    let owns_data = move || println!("{:?}", data);   // data MOVED into closure
+    owns_data();
+    // println!("{:?}", data);  // ERROR — data was moved
+}
+
+// -------------------------------------------
+// 4. Fn, FnMut, FnOnce — Closure Traits
+// -------------------------------------------
+
+// Closures implement one or more of these traits automatically:
+
+// FnOnce  — can be called ONCE. Takes captured values by value (consumes them).
+// FnMut   — can be called MULTIPLE TIMES with mutation. Mutably borrows captures.
+// Fn      — can be called MULTIPLE TIMES without mutation. Borrows captures immutably.
+
+// FnOnce ⊃ FnMut ⊃ Fn  (Fn is the most restrictive / most capable)
+
+// Using closures as function parameters:
+fn apply_once<F: FnOnce() -> String>(f: F) -> String {
+    f()   // f can only be called once
+}
+
+fn apply_mut<F: FnMut(i32) -> i32>(mut f: F, x: i32) -> i32 {
+    f(x)  // f can be called multiple times and can mutate captured state
+}
+
+fn apply<F: Fn(i32) -> i32>(f: F, x: i32) -> i32 {
+    f(x)  // f can be called multiple times, no mutation
+}
+
+fn demo_fn_traits() {
+    // Fn — no mutation, multiple calls
+    let multiplier = 3;
+    let triple = |x| x * multiplier;
+    println!("{}", apply(triple, 5));    // 15
+
+    // FnMut — mutates captured state
+    let mut total = 0;
+    let accumulate = |x| { total += x; total };
+    println!("{}", apply_mut(accumulate, 10));   // 10
+
+    // FnOnce — consumes a captured value (can only run once)
+    let greeting = String::from("Hello");
+    let consume = || greeting + " World";        // greeting is moved into closure on call
+    println!("{}", apply_once(consume));          // "Hello World"
+}
+
+// -------------------------------------------
+// 5. Closures in Standard Library (Iterator methods)
+// -------------------------------------------
+
+fn std_examples() {
+    let numbers = vec![1, 2, 3, 4, 5];
+
+    // map — transforms each element
+    let doubled: Vec<i32> = numbers.iter().map(|x| x * 2).collect();
+    println!("{:?}", doubled);    // [2, 4, 6, 8, 10]
+
+    // filter — keeps elements matching condition
+    let evens: Vec<&i32> = numbers.iter().filter(|x| *x % 2 == 0).collect();
+    println!("{:?}", evens);      // [2, 4]
+
+    // find — returns first match
+    let first_big = numbers.iter().find(|&&x| x > 3);
+    println!("{:?}", first_big);  // Some(4)
+
+    // fold — accumulate into a single value
+    let sum = numbers.iter().fold(0, |acc, x| acc + x);
+    println!("{}", sum);          // 15
+}
+
+// -------------------------------------------
+// 6. Returning a Closure from a Function
+// -------------------------------------------
+
+// Must use Box<dyn Fn> because closure size is unknown at compile time
+fn make_adder(n: i32) -> Box<dyn Fn(i32) -> i32> {
+    Box::new(move |x| x + n)   // `move` captures n by value into the closure
+}
+
+fn demo_return() {
+    let add5 = make_adder(5);
+    let add10 = make_adder(10);
+    println!("{}", add5(3));    // 8
+    println!("{}", add10(3));   // 13
+}
+
+/*
+---------------------------------------------------------------------------------------------------------------
+Concept / Topic              | Explanation
+---------------------------------------------------------------------------------------------------------------
+What is a Closure?           | - Anonymous function that can capture variables from its surrounding scope.
+                             | - Like C++ lambdas. Unlike regular functions which cannot capture.
+                             | - Syntax: |params| body or |params| { block }
+
+Capture by Reference (&T)    | - Default when closure only reads captured variable.
+                             | - Original variable still usable after closure.
+
+Capture by &mut T            | - When closure mutates a captured variable.
+                             | - Exclusive borrow — original variable blocked while closure exists.
+
+Capture by Value (move)      | - `move` keyword forces closure to take ownership of captured values.
+                             | - Necessary when returning closures or sending across threads.
+
+FnOnce                       | - Closure that can be called ONCE (consumes captured values).
+                             | - All closures implement FnOnce at minimum.
+
+FnMut                        | - Closure that can be called multiple times with mutable access to captures.
+                             | - Implements FnOnce and FnMut.
+
+Fn                           | - Closure that can be called multiple times, only immutable access.
+                             | - Implements FnOnce, FnMut, and Fn.
+
+Returning Closures           | - Use Box<dyn Fn(...)> because closure sizes are unknown at compile time.
+                             | - Usually needs `move` to capture environment into the closure.
+
+Common Uses                  | - Iterator adaptors: .map(), .filter(), .fold(), .find()
+                             | - Callbacks and event handlers
+                             | - Factory functions (return a configured closure)
+---------------------------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,204 @@
+// -------------------------------------------
+//              Smart Pointers
+// -------------------------------------------
+
+// A smart pointer is a data structure that acts like a pointer
+// but also has additional metadata and capabilities.
+// Unlike raw C++ pointers, Rust smart pointers integrate with the ownership system.
+
+// Common smart pointers:
+//  Box<T>        — heap allocation, single owner
+//  Rc<T>         — reference counted, multiple owners (single-threaded)
+//  Arc<T>        — atomic reference counted, multiple owners (multi-threaded)
+//  RefCell<T>    — interior mutability (bypass borrow rules at runtime)
+//  Mutex<T>      — interior mutability + thread safety
+
+// -------------------------------------------
+// 1. Box<T> — Heap Allocation
+// -------------------------------------------
+
+// Box<T> puts a value on the HEAP instead of the stack.
+// Use when:
+//   - The size is unknown at compile time (e.g., recursive types)
+//   - You want to transfer ownership of large data without copying
+
+fn box_demo() {
+    let x = Box::new(5);           // 5 is allocated on the heap
+    println!("{}", x);             // dereferences automatically
+    println!("{}", *x + 1);       // explicit deref also works
+
+    // When x goes out of scope, Box drops the heap memory automatically
+}
+
+// Box enables recursive types (size known at compile time because Box has fixed size)
+// Without Box this would be infinite size:
+enum List {
+    Cons(i32, Box<List>),   // Box breaks the infinite size cycle
+    Nil,
+}
+
+fn recursive_type() {
+    let list = List::Cons(1,
+        Box::new(List::Cons(2,
+            Box::new(List::Cons(3,
+                Box::new(List::Nil))))));
+}
+
+// -------------------------------------------
+// 2. Rc<T> — Reference Counted (single-threaded shared ownership)
+// -------------------------------------------
+
+// Rc<T> allows MULTIPLE OWNERS of the same heap data.
+// The data is dropped only when the LAST owner is dropped.
+// Like std::shared_ptr<T> in C++, but single-threaded only.
+
+use std::rc::Rc;
+
+fn rc_demo() {
+    let a = Rc::new(String::from("shared data"));
+    println!("reference count: {}", Rc::strong_count(&a));  // 1
+
+    let b = Rc::clone(&a);    // increments reference count — does NOT deep copy
+    println!("reference count: {}", Rc::strong_count(&a));  // 2
+
+    {
+        let c = Rc::clone(&a);
+        println!("reference count: {}", Rc::strong_count(&a));  // 3
+    }  // c dropped here — count goes back to 2
+
+    println!("reference count: {}", Rc::strong_count(&a));  // 2
+    println!("{}", a);   // data still accessible
+}
+
+// NOTE: Rc<T> does NOT allow mutation — all owners share an immutable reference
+// For mutation with shared ownership, combine with RefCell<T>
+
+// -------------------------------------------
+// 3. RefCell<T> — Interior Mutability (single-threaded)
+// -------------------------------------------
+
+// RefCell<T> allows you to mutate data even through an immutable reference.
+// It moves the borrow checking from compile time to RUNTIME.
+// If rules are violated at runtime, it panics instead of compile error.
+// Use when you KNOW the borrow rules are respected but the compiler cannot prove it.
+
+use std::cell::RefCell;
+
+fn refcell_demo() {
+    let data = RefCell::new(vec![1, 2, 3]);
+
+    // borrow() gives an immutable reference (panics if mut borrow already active)
+    println!("{:?}", data.borrow());
+
+    // borrow_mut() gives a mutable reference (panics if any borrow already active)
+    data.borrow_mut().push(4);
+
+    println!("{:?}", data.borrow());   // [1, 2, 3, 4]
+}
+
+// Common pattern: Rc<RefCell<T>> = shared + mutable data (single-threaded)
+fn rc_refcell_demo() {
+    let shared = Rc::new(RefCell::new(0));
+
+    let clone1 = Rc::clone(&shared);
+    let clone2 = Rc::clone(&shared);
+
+    *clone1.borrow_mut() += 10;
+    *clone2.borrow_mut() += 20;
+
+    println!("{}", shared.borrow());   // 30
+}
+
+// -------------------------------------------
+// 4. Arc<T> — Atomic Reference Counted (multi-threaded)
+// -------------------------------------------
+
+// Arc<T> is like Rc<T> but safe to use across threads.
+// "Atomic" = reference count changes are thread-safe.
+// Slightly slower than Rc due to atomic operations.
+
+use std::sync::Arc;
+use std::thread;
+
+fn arc_demo() {
+    let data = Arc::new(vec![1, 2, 3]);
+
+    let data_clone = Arc::clone(&data);
+    let handle = thread::spawn(move || {
+        println!("Thread sees: {:?}", data_clone);   // safe across threads
+    });
+
+    handle.join().unwrap();
+    println!("Main sees: {:?}", data);
+}
+
+// -------------------------------------------
+// 5. Mutex<T> — Thread-Safe Interior Mutability
+// -------------------------------------------
+
+// Mutex<T> allows mutation across threads safely.
+// Only ONE thread can access the data at a time.
+// Pair with Arc<T> for shared mutable state across threads.
+
+use std::sync::Mutex;
+
+fn mutex_demo() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    for _ in 0..5 {
+        let counter_clone = Arc::clone(&counter);
+        let handle = thread::spawn(move || {
+            let mut num = counter_clone.lock().unwrap();  // lock — blocks until acquired
+            *num += 1;
+        });  // lock released when `num` goes out of scope
+        handles.push(handle);
+    }
+
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    println!("Result: {}", *counter.lock().unwrap());  // 5
+}
+
+/*
+---------------------------------------------------------------------------------------------------------------
+Concept / Topic              | Explanation
+---------------------------------------------------------------------------------------------------------------
+Box<T>                       | - Allocates T on the heap. Single owner. Dropped when owner drops.
+                             | - Use for: large data, unknown-size types (recursive), ownership transfer.
+                             | - C++ equivalent: std::unique_ptr<T>
+
+Rc<T>                        | - Multiple owners of heap data. Reference counted.
+                             | - Data dropped when ALL owners drop (count reaches 0).
+                             | - Single-threaded only — NOT Send.
+                             | - Use Rc::clone(&x) to add an owner (not deep clone).
+                             | - C++ equivalent: std::shared_ptr<T>
+
+RefCell<T>                   | - Interior mutability — mutate through immutable reference.
+                             | - Borrow checking moved to RUNTIME (panics on violation).
+                             | - Single-threaded. Use when you know rules hold but compiler cannot verify.
+
+Rc<RefCell<T>>               | - The standard pattern for shared mutable data on a single thread.
+                             | - Rc = multiple owners, RefCell = interior mutability.
+
+Arc<T>                       | - Thread-safe version of Rc<T>. Uses atomic operations for the count.
+                             | - Slightly slower than Rc due to atomic overhead.
+                             | - C++ equivalent: std::shared_ptr<T> (which is always atomic)
+
+Mutex<T>                     | - Thread-safe interior mutability. Only one thread accesses at a time.
+                             | - .lock() blocks until the lock is acquired. Returns MutexGuard.
+                             | - Lock released when MutexGuard goes out of scope (RAII).
+
+Arc<Mutex<T>>                | - The standard pattern for shared mutable data across threads.
+
+Summary Table:
+ Need                         | Solution
+ Heap allocation, one owner   | Box<T>
+ Shared ownership, 1 thread   | Rc<T>
+ Shared ownership, N threads  | Arc<T>
+ Mutable shared data, 1 thread| Rc<RefCell<T>>
+ Mutable shared data, N threads| Arc<Mutex<T>>
+---------------------------------------------------------------------------------------------------------------
+*/

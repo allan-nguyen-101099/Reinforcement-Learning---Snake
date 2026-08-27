@@ -1,0 +1,155 @@
+// -------------------------------------------------
+// 			- Functions
+// 			- Code Blocks
+// -------------------------------------------------
+
+// ── Function Definitions ────────────────────────────────────────────────────────
+
+// `fn`          → keyword: declares a new function
+// `my_fn`       → the function's name (must be snake_case by convention)
+// `(`           → opens the parameter list
+// `s`           → parameter name (acts as a local variable inside the function)
+// `:`           → separates parameter name from its type
+// `&str`        → parameter type: a string slice reference (read-only borrowed text)
+//                 `&` = REFERENCE (borrowed; no ownership transfer)
+//                 `str` = the string slice type
+// `)`           → closes the parameter list
+// (no `->`      → no return type listed means the function returns the unit type `()`)
+// `{`           → opens the function body
+fn my_fn(s: &str) {
+    // `{s}`     → format placeholder: inserts the current value of parameter `s`
+    println!("{s}");
+} // `}` closes the function; execution returns to the caller
+
+// This function takes TWO parameters and EXPLICITLY RETURNS a value:
+//
+// `num1: i32`   → first parameter named `num1` of type i32
+// `,`           → separator between parameters
+// `num2: i32`   → second parameter named `num2` of type i32
+// `->`          → ARROW: indicates the return type follows
+// `i32`         → the return type: this function produces a signed 32-bit integer
+fn multiplication(num1: i32, num2: i32) -> i32 {
+    // `return 45;` → EARLY RETURN: exits the function immediately with value 45
+    //               The `return` keyword can be used anywhere in a function body.
+    //               Here it is commented out so execution continues normally.
+    // return 45;
+    println!("Computing Multiplication");
+
+    // In Rust, the LAST EXPRESSION without a semicolon IS the return value.
+    // `num1 * num2`  → multiplies the two parameters together
+    // NO semicolon   → this is an EXPRESSION; it becomes the implicit return value
+    // (Adding `;` would make it a STATEMENT returning `()` — a common mistake!)
+    num1 * num2
+}
+
+// This function returns MULTIPLE values packed into a TUPLE:
+//
+// `-> (i32, i32, i32)` → the return type: a tuple of three i32 values
+fn basic_math(num1: i32, num2: i32) -> (i32, i32, i32) {
+    // A tuple literal as the last expression (no semicolon) = the return value.
+    // `num1 * num2`   → product     (element 0)
+    // `num1 + num2`   → sum         (element 1)
+    // `num1 - num2`   → difference  (element 2)
+    (num1 * num2, num1 + num2, num1 - num2)
+}
+
+// Expressions vs. Statements — an important Rust concept:
+// - An EXPRESSION evaluates to a VALUE (e.g. `5 + 3`, `num1 * num2`, a `{ }` block)
+// - A STATEMENT performs an action but returns `()` (e.g. `let x = 5;`, `println!(...);"`)
+fn main() {
+    // Calling `my_fn` and passing a string literal argument:
+    // `my_fn`                → the function being called
+    // `(`                    → opens the argument list
+    // `"This is my function"` → a `&str` argument that matches the `s: &str` parameter
+    // `)`                    → closes the argument list
+    // `;`                    → ends the call statement
+    my_fn("This is my function");
+
+    // Storing a value in a variable and then passing the variable as an argument:
+    let str = "Function call with a variable"; // str is `&str`
+    my_fn(str); // same as passing the string literal directly
+
+    // Capturing a function's RETURN VALUE into a variable:
+    // `let answer`           → new variable that will hold the return value
+    // `= multiplication(10, 15)` → calls the function with arguments 10 and 15
+    //                             returns 10 * 15 = 150
+    let answer = multiplication(10, 15); // answer = 150
+
+    // When a function returns a tuple, you can bind the whole tuple to one variable:
+    // `result` has type `(i32, i32, i32)`
+    let result = basic_math(10, 15);
+
+    // DESTRUCTURING a tuple return value into separate named variables in one step:
+    // `(multiplication, addition, subtraction)` → a pattern matching the 3-element tuple
+    //   `multiplication` → binds to element 0: 10 * 15 = 150
+    //   `addition`       → binds to element 1: 10 + 15 = 25
+    //   `subtraction`    → binds to element 2: 10 - 15 = -5
+    let (multiplication, addition, subtraction) = basic_math(10, 15);
+
+    // ── Code Blocks ─────────────────────────────────────────────────────
+    // A code block `{ }` is itself an EXPRESSION that can evaluate to a value.
+    // The LAST EXPRESSION inside the block (no `;`) becomes the block's value.
+    // Variables declared inside the block are NOT accessible outside it.
+    //
+    // `let full_name` → binds the variable to whatever the block evaluates to
+    // `= {`           → the code block starts here; it is an expression being assigned
+    let full_name = {
+        let first_name = "Nouman"; // local to this block only
+        let last_name = "Azam";   // local to this block only
+
+        // `answer` is from the OUTER scope; code blocks CAN access outer variables
+        println!("{answer}"); // prints 150
+
+        // `format!`    → a macro like `println!` but RETURNS a String instead of printing
+        // `"{first_name} {last_name}"` → format string with two placeholders
+        // NO semicolon → this is the block's RETURN VALUE (a String "Nouman Azam")
+        format!("{first_name} {last_name}")
+    }; // ← semicolon here ends the outer `let full_name = ...;` STATEMENT
+
+    // `first_name` and `last_name` are out of scope here — they only existed inside the block:
+    // println!("{first_name}"); // ERROR: cannot find value `first_name` in this scope
+}
+
+/*
+Similarities
+-----------------------------------------------------------------------------------------------------------------------------
+Code Blocks                      | Functions
+-----------------------------------------------------------------------------------------------------------------------------
+Have their own separate body     | Have their own separate body
+Can return a value               | Can return a value
+Variables inside are limited     | Variables inside are limited to the function’s scope
+to the block’s scope
+-----------------------------------------------------------------------------------------------------------------------------
+
+Differences
+-----------------------------------------------------------------------------------------------------------------------------
+Code Blocks                                 | Functions
+-----------------------------------------------------------------------------------------------------------------------------
+Not designed for reuse                      | Designed for reuse
+No explicit parameters                      | Have an explicit parameter list,
+Can access variables in the scope it lies   | Can access variables passed in as parameters or variables locally defined
+-----------------------------------------------------------------------------------------------------------------------------
+*/
+
+
+/*
+Summary
+-----------------------------------------------------------------------------------------------------------------------------
+Topic                              | Key Points
+-----------------------------------------------------------------------------------------------------------------------------
+Functions                          | Declared using fn keyword, fn name should be snake_case,
+                                   | Parameters types must be annotated,
+                                   | Function called by writting their names,
+                                   | Returns value are mentioned using `->` followed by type,
+                                   | Last expression without semicolon is returned,
+                                   | Early return uses `return` keyword,
+                                   | Functions without explicit return return `()`,
+                                   | Use compound data types to return mutliple values,
+                                   | Functions cannot access variables from `main` unless passed as parameters;
+                                   | local variables inside functions are not visible outside.
+
+Code Blocks                        | Enclosed in `{}`, have their own scope,
+                                   | Can return a value and can access variables from scopes in which they lie
+-----------------------------------------------------------------------------------------------------------------------------
+*/
+

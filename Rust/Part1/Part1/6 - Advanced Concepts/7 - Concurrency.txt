@@ -1,0 +1,197 @@
+// -------------------------------------------
+//              Concurrency
+// -------------------------------------------
+
+// Rust provides fearless concurrency — the type system and ownership rules
+// catch data races and unsafe shared state AT COMPILE TIME.
+// Rust's key guarantee: if it compiles, it has no data races.
+
+// -------------------------------------------
+// 1. Spawning Threads
+// -------------------------------------------
+
+use std::thread;
+use std::time::Duration;
+
+fn spawning_threads() {
+    // thread::spawn — creates a new OS thread
+    // takes a closure as the thread's code
+    let handle = thread::spawn(|| {
+        for i in 1..=5 {
+            println!("Thread: {}", i);
+            thread::sleep(Duration::from_millis(50));
+        }
+    });
+
+    for i in 1..=3 {
+        println!("Main: {}", i);
+        thread::sleep(Duration::from_millis(50));
+    }
+
+    handle.join().unwrap();   // waits for the thread to finish
+    // without join(), the main thread might exit before the spawned thread finishes
+}
+
+// -------------------------------------------
+// 2. Moving Data into Threads (move closures)
+// -------------------------------------------
+
+fn move_into_thread() {
+    let data = vec![1, 2, 3];
+
+    // `move` is required — thread might outlive the current function
+    // so the thread must OWN the data (not borrow it)
+    let handle = thread::spawn(move || {
+        println!("{:?}", data);   // data is owned by this thread
+    });
+
+    // println!("{:?}", data);   // ERROR — data was moved into thread
+
+    handle.join().unwrap();
+}
+
+// -------------------------------------------
+// 3. Message Passing with Channels (mpsc)
+// -------------------------------------------
+
+// mpsc = Multiple Producer, Single Consumer
+// Like a pipe: send values from one thread, receive in another.
+// Rule: data is MOVED through the channel — sender gives up ownership.
+
+use std::sync::mpsc;
+
+fn channel_demo() {
+    let (tx, rx) = mpsc::channel();   // tx = transmitter (sender), rx = receiver
+
+    thread::spawn(move || {
+        let msg = String::from("hello from thread");
+        tx.send(msg).unwrap();         // msg is MOVED — no longer accessible here
+        // println!("{}", msg);        // ERROR — msg was moved into channel
+    });
+
+    let received = rx.recv().unwrap();  // blocks until a message arrives
+    println!("{}", received);           // "hello from thread"
+}
+
+// Multiple messages:
+fn channel_multiple() {
+    let (tx, rx) = mpsc::channel();
+
+    thread::spawn(move || {
+        let messages = vec!["one", "two", "three"];
+        for msg in messages {
+            tx.send(msg).unwrap();
+            thread::sleep(Duration::from_millis(100));
+        }
+    });
+
+    for received in rx {     // rx used as an iterator — stops when sender is dropped
+        println!("{}", received);
+    }
+}
+
+// Multiple senders (clone the transmitter):
+fn multiple_senders() {
+    let (tx, rx) = mpsc::channel();
+    let tx2 = tx.clone();   // second sender
+
+    thread::spawn(move || { tx.send("from thread 1").unwrap(); });
+    thread::spawn(move || { tx2.send("from thread 2").unwrap(); });
+
+    for msg in rx {
+        println!("{}", msg);
+    }
+}
+
+// -------------------------------------------
+// 4. Shared State with Arc<Mutex<T>>
+// -------------------------------------------
+
+// When multiple threads need to READ AND WRITE the same data:
+// Arc  = shared ownership across threads
+// Mutex = only one thread accesses data at a time
+
+use std::sync::{Arc, Mutex};
+
+fn shared_state() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    for _ in 0..10 {
+        let counter = Arc::clone(&counter);
+        let handle = thread::spawn(move || {
+            let mut num = counter.lock().unwrap();  // acquire lock (blocks if locked)
+            *num += 1;
+            // lock automatically released when `num` (MutexGuard) drops here
+        });
+        handles.push(handle);
+    }
+
+    for handle in handles { handle.join().unwrap(); }
+    println!("Result: {}", *counter.lock().unwrap());  // 10
+}
+
+// -------------------------------------------
+// 5. Send and Sync Traits
+// -------------------------------------------
+
+// These traits control what can cross thread boundaries:
+//
+// Send   — type can be MOVED to another thread (transferred ownership).
+//          Most types are Send. Rc<T> is NOT Send.
+//
+// Sync   — type can be REFERENCED from multiple threads simultaneously (&T is Send if T: Sync).
+//          Most types are Sync. Cell<T>, RefCell<T> are NOT Sync.
+//
+// Arc<T>   is Send + Sync  (if T is Send + Sync)
+// Mutex<T> is Send + Sync  (if T is Send)
+// Rc<T>    is neither Send nor Sync  (use Arc instead)
+
+// These are MARKER TRAITS — no methods, just compiler enforcement.
+// You generally don't implement them manually — they are auto-derived.
+
+// -------------------------------------------
+// 6. Choosing Between Channels and Shared State
+// -------------------------------------------
+
+// Channels (mpsc)              vs    Shared State (Arc<Mutex<T>>)
+// ---------------------------------------------------------------
+// Message-passing style              State mutation style
+// No shared data — safer            Shared data — more complex
+// Good for pipelines / tasks        Good for counters, caches
+// Data moved through channel        Data locked and updated in place
+
+/*
+---------------------------------------------------------------------------------------------------------------
+Concept / Topic              | Explanation
+---------------------------------------------------------------------------------------------------------------
+thread::spawn                | - Creates a new OS thread. Returns JoinHandle.
+                             | - Takes a closure as the thread body.
+                             | - Use .join() to wait for the thread to finish.
+
+move closures in threads     | - `move` keyword transfers ownership of captured variables into the thread.
+                             | - Required because threads may outlive the spawning function.
+
+Channels (mpsc)              | - Multiple Producer, Single Consumer pipe between threads.
+                             | - let (tx, rx) = mpsc::channel()
+                             | - tx.send(value) moves value into the channel.
+                             | - rx.recv() blocks until a message is available.
+                             | - rx used as an iterator receives until all senders are dropped.
+
+Multiple Senders             | - Clone tx with tx.clone() to create additional senders.
+                             | - All clones share the same channel to the single receiver.
+
+Arc<Mutex<T>>                | - Standard pattern for shared mutable state across threads.
+                             | - .lock() acquires the lock, returns MutexGuard (RAII).
+                             | - Lock released automatically when MutexGuard goes out of scope.
+
+Send Trait                   | - Marks a type safe to MOVE across threads. Auto-derived for most types.
+                             | - Rc<T> is NOT Send — use Arc<T> for cross-thread shared ownership.
+
+Sync Trait                   | - Marks a type safe to SHARE by reference across threads.
+                             | - RefCell<T> is NOT Sync — use Mutex<T> for cross-thread interior mutability.
+
+Fearless Concurrency         | - Rust's ownership system prevents data races at COMPILE TIME.
+                             | - If the code compiles, there are no data races.
+---------------------------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,136 @@
+// ------------------------------------
+// 			- Operators
+// ------------------------------------
+fn main() {
+    // ── Arithmetic Operators ───────────────────────────────────────────────
+    // `+`  → addition        (e.g. 3 + 2 = 5)
+    // `-`  → subtraction     (e.g. 5 - 2 = 3)
+    // `*`  → multiplication  (e.g. 4 * 3 = 12)
+    // `/`  → division        (e.g. 10 / 3 = 3  for integers — truncates toward zero)
+    // `%`  → MODULO (remainder after division)  (e.g. 17 % 5 = 2)
+    //
+    // NOTE: `^` is NOT exponentiation in Rust (it is bitwise XOR — see below).
+    // For powers/exponentiation, use the `.pow()` method on integers
+    // or `.powi()` / `.powf()` for floats.
+    //
+    // `17 % 5`      → 17 divided by 5 = 3 remainder 2; the `%` operator returns 2
+    // `"{}"`        → anonymous placeholder; filled by the value `17 % 5`
+    println!("Remainder after dividing 17 by 5: {}", 17 % 5); // Output: 2
+
+    // ── Comparison Operators ──────────────────────────────────────────────
+    // Comparison operators compare two values and return a BOOLEAN (`true` or `false`).
+    //
+    // `==`  → EQUALITY: true if both sides are equal
+    //         DO NOT confuse with `=` (assignment) — `==` compares, `=` assigns
+    // `!=`  → INEQUALITY: true if the two sides are NOT equal
+    // `>`   → GREATER THAN: true if left side is greater
+    // `<`   → LESS THAN: true if left side is smaller
+    // `>=`  → GREATER THAN OR EQUAL TO
+    // `<=`  → LESS THAN OR EQUAL TO
+
+    let a = 10;
+    let b = 10;
+    // Each expression inside the `println!` is a comparison that evaluates to bool:
+    // `a == b`  → 10 == 10 → true
+    // `a != b`  → 10 != 10 → false
+    // `a < b`   → 10 < 10  → false
+    // `a > b`   → 10 > 10  → false
+    // `a <= b`  → 10 <= 10 → true
+    // `a >= b`  → 10 >= 10 → true
+    println!(
+        "a == b: {}, a != b: {}, a < b: {}, a > b: {}, a <= b: {}, a >= b: {}",
+        a == b,
+        a != b,
+        a < b,
+        a > b,
+        a <= b,
+        a >= b,
+    );
+
+    // ── Logical Operators ─────────────────────────────────────────────────
+    // Logical operators work on BOOLEAN values and return a boolean.
+    //
+    // `&&`  → AND: true ONLY if BOTH sides are true; short-circuits (if left is false, right is skipped)
+    // `||`  → OR:  true if AT LEAST ONE side is true; short-circuits (if left is true, right is skipped)
+    // `!`   → NOT: flips the boolean (true becomes false, false becomes true)
+
+    let a = 10;
+    let b = 20;
+
+    // `(a > 5)`    → 10 > 5  → true
+    // `&&`         → AND operator: both conditions must be true
+    // `(b < 25)`   → 20 < 25 → true
+    // true && true → true → the if-block runs
+    if (a > 5) && (b < 25) {
+        println!("Conditions satisfied");
+    } else {
+        println!("Conditions not satisfiedd");
+    }
+
+    // ── Assignment Operators ──────────────────────────────────────────────
+    // COMPOUND ASSIGNMENT operators are shorthand for common patterns:
+    //
+    // `+=`  → Add and assign:         x += 5  means  x = x + 5
+    // `-=`  → Subtract and assign:    x -= 5  means  x = x - 5
+    // `*=`  → Multiply and assign:    x *= 5  means  x = x * 5
+    // `/=`  → Divide and assign:      x /= 5  means  x = x / 5
+    // `%=`  → Remainder and assign:   x %= 5  means  x = x % 5
+
+    let mut x = 5;
+    x += 5; // x = x + 5 = 10
+    x -= 5; // x = x - 5 = 5
+    x *= 5; // x = x * 5 = 25
+    x /= 5; // x = x / 5 = 5
+    x %= 5; // x = x % 5 = 0
+
+    // ── Bitwise Operators ────────────────────────────────────────────────
+    // Bitwise operators work directly on the BINARY REPRESENTATION of integer values.
+    // Commonly used in systems programming, embedded, and performance-critical code.
+    //
+    // `&`   → AND:         sets each bit to 1 only if BOTH corresponding bits are 1
+    // `|`   → OR:          sets each bit to 1 if EITHER corresponding bit is 1
+    // `^`   → XOR:         sets each bit to 1 if the bits are DIFFERENT
+    //         NOTE: `^` in Rust is BITWISE XOR — NOT exponentiation!
+    // `~`   → NOT/flip:    inverts all bits (in Rust written as `!` for integers, not `~`)
+    // `<<`  → LEFT SHIFT:  shifts all bits to the LEFT by n positions (multiplies by 2^n)
+    // `>>`  → RIGHT SHIFT: shifts all bits to the RIGHT by n positions (divides by 2^n)
+
+    // `u8`          → unsigned 8-bit integer; useful to see all 8 bits clearly
+    // `4` in binary → 0000_0100
+    let x: u8 = 4;
+
+    // `x & x`       → bitwise AND of x with itself
+    //                 0000_0100
+    //               & 0000_0100
+    //               = 0000_0100 = 4
+    println!("{}", x & x); // Output: 4
+
+    // `4 << 1`      → LEFT SHIFT 4 by 1 bit position
+    //                 0000_0100 becomes 0000_1000 = 8
+    //                 Shifting left by 1 is equivalent to multiplying by 2
+    let y: u8 = 4 << 1; // y = 8
+}
+
+/*
+-------------------------------------------------------------------------------------------------
+Operator Type               | Explanation
+----------------------------|-----------------------------------------------------------
+Arithmetic Operators        | Perform basic math on numeric types (i32, f64, etc.)  
+                            | Include +, -, *, /, and % (modulo)  
+                            | Exponentiation not supported with ^, use .pow method  
+
+Comparison Operators        | Compare two values, return true/false  
+                            | Equality (==), Inequality (!=), Relational (<, >, <=, >=)  
+                            | Must not confuse == (equality) with = (assignment)  
+
+Logical Operators           | Combine or negate Boolean conditions  
+                            | AND (&&), OR (||) and NOT (!)
+
+Assignment Operators        | Assign or update values in variables  
+                            | They include +=, -=, *=, /=, %=  
+
+Bitwise Operators           | Operate on binary representation of integers (u8, i32, etc.)  
+                            | AND (&), OR (|), XOR (^), NOT (~), << (left shift), >> (right shift)  
+                            | Useful in systems programming, embedded, performance-critical apps  
+-------------------------------------------------------------------------------------------------
+ */

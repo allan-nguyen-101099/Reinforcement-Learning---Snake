@@ -1,0 +1,139 @@
+// -------------------------------------------------
+// 			- Compound Data Types
+// 	 			- &str and String
+// 				- Arrays
+// 				- Vectors
+// 				- Tuples
+// 				- Empty Tuple
+// -------------------------------------------------
+
+fn main() {
+    // ── String Slice (&str) ────────────────────────────────────────────────
+    // A string slice `&str` is a FIXED-SIZE, READ-ONLY view into string data.
+    // String literals (text in double quotes) are always of type `&str`.
+    //
+    // `let`           → declares the variable
+    // `fixed_str`     → variable name; type is inferred as `&str`
+    // `=`             → assignment
+    // `"..."`         → a STRING LITERAL — data stored directly in the program binary
+    //                   Type: `&str`; it is a reference to read-only string data
+    //                   Cannot be resized or modified
+    let fixed_str = "Fixed length string";
+
+    // ── String (String) ────────────────────────────────────────────────────
+    // `String` (capital S) is a heap-allocated, GROWABLE, MUTABLE string.
+    // Unlike `&str`, a `String` OWNS its data and can be modified.
+    //
+    // `mut`           → makes `flexible_str` mutable (required since we'll modify it)
+    // `String`        → the String TYPE (a struct from Rust's standard library)
+    // `::`            → path separator: accesses items associated with a type
+    //                   Think of it as "belonging to": String::from means "the `from` function that belongs to String"
+    // `from`          → a constructor function that creates a new String from a `&str` literal
+    // `(...)`         → argument list; the `&str` to convert
+    let mut flexible_str = String::from("This string will grow");
+
+    // `flexible_str`  → the String variable we are calling a method on
+    // `.`             → dot operator: accesses a METHOD or FIELD of a value
+    // `push`          → a method on String: APPENDS a single CHAR to the end of the string
+    // `(`             → opens the argument list
+    // `'s'`           → a CHAR LITERAL (single quotes!) — the character to append
+    // `)`             → closes the argument list
+    // `;`             → ends the statement
+    flexible_str.push('s'); // flexible_str is now "This string will grows"
+
+    // ── Arrays ────────────────────────────────────────────────────────────
+    // An array is a FIXED-SIZE collection of elements ALL of the SAME TYPE.
+    // Size is determined at compile time and CANNOT change at runtime.
+    //
+    // `mut`           → allows modifying individual elements of the array later
+    // `[4, 5, 6, 9, 8]` → ARRAY LITERAL: comma-separated values inside square brackets
+    //                   Type is inferred as `[i32; 5]` — an array of 5 i32 values
+    //                   Syntax: [type; number_of_elements]
+    let mut array_1 = [4, 5, 6, 9, 8];
+
+    // `array_1`       → the array variable
+    // `[3]`           → INDEX NOTATION: accesses the element at index 3
+    //                   Arrays are ZERO-INDEXED: index 0 = first element
+    //                   Index 3 → the 4th element → value is 9
+    let num = array_1[3]; // num = 9
+
+    // `{:?}`          → the DEBUG format specifier
+    //                   Prints the value using its Debug representation
+    //                   Standard `{}` does NOT work for arrays; `{:?}` is required
+    //                   Use `{:#?}` for a pretty-printed (multiline) version
+    // `array_1`       → the array to print (passed as the second argument)
+    println!("{:?}", array_1); // Output: [4, 5, 6, 9, 8]
+
+    // `[0; 10]`       → REPEAT ARRAY SYNTAX:
+    //                   First part `0`   → the VALUE to fill every element with
+    //                   `;`              → separates fill value from element count
+    //                   Second part `10` → the NUMBER of elements
+    //                   Creates: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    let array_2 = [0; 10];
+
+    // ── Vectors ────────────────────────────────────────────────────────────
+    // A vector is a GROWABLE, heap-allocated array.
+    // Unlike arrays, vectors CAN change size at runtime.
+    //
+    // `Vec<i32>`      → the explicit type annotation
+    //   `Vec`         → Vector type from Rust's standard library
+    //   `<i32>`       → GENERIC PARAMETER: specifies all elements must be i32
+    //                   Angle brackets `<>` denote a generic (type parameter)
+    // `vec![]`        → the `vec!` MACRO: creates a new Vec pre-filled with the given values
+    //                   `vec![a, b, c]` is shorthand for creating and populating a Vec
+    let vec_1: Vec<i32> = vec![4, 5, 6, 8, 9];
+
+    // Indexing a vector uses the same square bracket notation as arrays (zero-indexed)
+    // `vec_1[3]`      → element at index 3 → value 8
+    let num = vec_1[3]; // num = 8
+
+    // ── Tuples ────────────────────────────────────────────────────────────
+    // A tuple is a fixed-size group of values that CAN hold DIFFERENT types.
+    //
+    // `(...)`         → parentheses with comma-separated values = TUPLE LITERAL
+    // `"Salary"`      → a &str element
+    // `40000`         → an i32 element
+    // `"Age"`         → another &str element
+    // `40`            → another i32 element
+    // Full type: (&str, i32, &str, i32)
+    let my_info = ("Salary", 40000, "Age", 40);
+
+    // Tuple FIELD ACCESS uses DOT NOTATION with a numeric index (zero-indexed):
+    // `my_info`       → the tuple variable
+    // `.`             → dot operator
+    // `1`             → index: accesses the element at position 1 → value 40000
+    //                   (NOT square brackets like arrays — tuples use `.index`)
+    let salary_value = my_info.1; // salary_value = 40000
+
+    // DESTRUCTURING: unpack a tuple into individual variables in a single `let` statement
+    // `(salary, salary_value, age, age_value)` → a PATTERN that matches the tuple's structure
+    //   `salary`       → binds to my_info.0 = "Salary"
+    //   `salary_value` → binds to my_info.1 = 40000
+    //   `age`          → binds to my_info.2 = "Age"
+    //   `age_value`    → binds to my_info.3 = 40
+    // `= my_info`      → the tuple being destructured on the right-hand side
+    let (salary, salary_value, age, age_value) = my_info;
+
+    // ── Empty Tuple / Unit Type () ─────────────────────────────────────────
+    // `()` is called the UNIT TYPE — an empty tuple with no values.
+    // Represents "no meaningful value" (similar to `void` in C/Java).
+    // Functions that don't explicitly return a value implicitly return `()`.
+    // Takes ZERO bytes of memory.
+    //
+    // `()`            → the unit type literal (an empty tuple)
+    let unit = ();
+}
+
+/*
+Summary
+-----------------------------------------------------------------------------------------------------------------------------
+Data Type                   | Details
+-----------------------------------------------------------------------------------------------------------------------------
+String Slice (&str)         | fixed size string, used for read-only access
+String (String)             | Can grow/shrink, created using String::from
+Arrays                      | Hold values of same type, fixed size, index starts at 0, printed with {:?}
+Vectors (Vec<T>)            | Grow/shrink, created with vec![] macro, all elements same type
+Tuples                      | Can hold values of different types, values can destructured
+Unit Type ()                | Returned when no meaningful value exists, zero-sized and uses no memory
+-----------------------------------------------------------------------------------------------------------------------------
+*/

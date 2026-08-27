@@ -1,0 +1,47 @@
+// -------------------------------------------
+// 	      Referencing in Compound Data Types
+// -------------------------------------------
+
+fn main() {
+    // Referencing in Tuples
+    let mut tuple = (String::from("Rust"), String::from("Lang"));
+    let mut_ref1 = &mut tuple.0;
+    let immut_ref1 = &tuple.1;
+    println!("{} {}", mut_ref1, immut_ref1);
+
+    let mut_ref2 = &mut tuple.1;
+    println!("{} {}", mut_ref1, mut_ref2);
+
+    // Referecning in Vectors
+    let mut data = vec![10, 20, 30, 40, 50, 60];
+    // let mut_ref1 = &mut data[2];
+    // let immut_ref1 = &mut data[4];
+    // println!("{} {}", mut_ref1, immut_ref1);
+
+    let (a, b) = data.split_at_mut(2); // a = [10, 20],  b = [30, 40, 50, 60]
+    let (c, d) = b.split_at_mut(2); // c = [30, 40], d = [50, 60]
+
+    a[0] += 1;
+    b[0] += 1;
+    println!("a: {:?}, b: {:?}", a, b);
+}
+
+/*
+---------------------------------------------------------------------------------------------------
+Concept/Topic         | Explanation
+----------------------|----------------------------------------------------------------------------
+References in Tuples  | Borrowing rules in tuples are on a per-element basis.
+                      | Mutably borrowing one element does not restrict borrowing others.
+                      | Multiple mutable borrows are allowed when they target different elements.
+
+References in Vectors | Borrowing rules are applied to the entire collection.
+                      | Mutably borrowing one element, prevents other mutable or immutable borrows.
+
+split_at_mut Method   | The split_at_mut method enables simultanour mutable access to parts of vectors.
+                      | It divides a vector into two non-overlapping mutable slices at a given index.
+                      | Each slice can be modified independently without violating borrowing rules.
+
+Chained Splitting     | Vectors can be split into more than two mutable parts by chaining split_at_mut.
+                      | This enables controlled mutable access to multiple disjoint segments.
+--------------------------------------------------------------------------------------------------------
+*/

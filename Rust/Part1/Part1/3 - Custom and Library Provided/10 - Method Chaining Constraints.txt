@@ -1,0 +1,195 @@
+// -------------------------------------------
+// 		Method Chaining Constraints
+// -------------------------------------------
+// `#[derive(Debug)]` → compiler directive: auto-generates a Debug implementation
+//                      Allows printing the struct with `{:?}` or `{:#?}`
+#[derive(Debug)]
+struct BankAccount {
+    balance: i32,
+    owner: String,
+}
+
+impl BankAccount {
+    // ── Associated Function: new (Constructor) ────────────────────────────
+    // No `self` → not called on an instance; creates a NEW one
+    // Returns `Self` (owned BankAccount)
+    // Called as: `BankAccount::new(...)`
+    //
+    // Chaining after `new`: since it returns an OWNED `Self`,
+    // you can chain ANY method form (&self, &mut self, or self) after it
+    fn new(owner: String, initial_balance: i32) -> Self {
+        println!("Account opened successfully");
+        Self {
+            balance: initial_balance,
+            owner, // shorthand for `owner: owner`
+        }
+    }
+
+    // ── Method: change_owner — takes OWNED self (consuming + returning) ───
+    // `mut self`       → takes OWNERSHIP of the instance (moves it in)
+    //                    `mut` allows modifying the local `self` inside
+    // `-> Self`        → returns ownership of the (modified) instance back
+    //
+    // CHAINING RULE: returns owned `Self`
+    //   Can chain with: self, &self, &mut self (all three forms) ✅
+    //
+    // After calling `.change_owner(...)`, the original variable is MOVED IN
+    // and ownership is returned via the return value — must capture or chain it
+    fn change_owner(mut self, new_owner: String) -> Self {
+        self.owner = new_owner; // modify the owned local copy
+        self                    // return ownership back to caller
+    }
+
+    // ── Method: check_balance — takes &self (read-only) ──────────────────
+    // `&self`          → immutable borrow; reads fields but cannot modify them
+    // No return value  → returns `()` (unit type)
+    //
+    // CHAINING RULE: returns nothing `()`
+    //   CANNOT chain further — nothing is returned to call the next method on ❌
+    fn check_balance(&self) {
+        println!("{}'s balance: ${}", self.owner, self.balance);
+    }
+
+    // ── Method: deposit — takes &mut self, returns &mut Self ─────────────
+    // `&mut self`      → mutable borrow; can modify fields (balance)
+    // `-> &mut Self`   → returns a MUTABLE REFERENCE to self back to caller
+    //                    This is what ENABLES method chaining for mutable methods
+    //
+    // CHAINING RULE: returns `&mut Self`
+    //   Can chain with: &mut self methods ✅  OR  &self methods ✅
+    //   Cannot chain with: methods that take owned `self` ❌
+    fn deposit(&mut self, amount: i32) -> &mut Self {
+        self.balance += amount;
+        println!("Deposited ${} to {}'s account", amount, self.owner);
+        self // returns &mut Self — enables chaining
+    }
+
+    // ── Method: withdraw — takes &mut self, returns &mut Self ────────────
+    // Same chaining rules as `deposit` above
+    // Contains a conditional: only withdraws if sufficient balance exists
+    fn withdraw(&mut self, amount: i32) -> &mut Self {
+        if self.balance >= amount {
+            self.balance -= amount;
+            println!("withdrew ${} from {}'s account", amount, self.owner);
+        } else {
+            println!(
+                "Insufficient funds for withdrawl in {}'s account",
+                self.owner
+            );
+        }
+        self // returns &mut Self — enables chaining
+    }
+
+    // ── Method: view_owner — takes &self, returns &Self ──────────────────
+    // `&self`          → immutable borrow (read-only)
+    // `-> &Self`       → returns an IMMUTABLE REFERENCE to self
+    //
+    // CHAINING RULE: returns `&Self`
+    //   Can chain with: &self methods ONLY ✅
+    //   Cannot chain with: &mut self or owned self methods ❌
+    //   (going from read-only back to mutable is not allowed)
+    fn view_owner(&self) -> &Self {
+        println!("Account owner: {}", self.owner);
+        self // returns &Self — enables chaining with &self methods only
+    }
+}
+
+/*
+---------------------------------------------------------------
+Self type   | Methods & Notes
+----------- | -------------------------------------------------
+self        | change_owner(mut self, .. ) -> Self
+
+&self       | check_balance(&self)
+            | view_owner(&self) -> &Self
+
+&mut self   | deposit(&mut self, .. ) -> &mut Self
+            | withdraw(&mut self, ..) -> &mut Self
+
+No self     |  new(String, i32) -> Self
+---------------------------------------------------------------
+*/
+
+// Method Chaining: depends on how each method receives and returns back self.
+// Rule: A().B() works only when the OUTPUT TYPE of A matches the INPUT requirement of B
+fn main() {
+    // `BankAccount::new(...)` → associated function; returns owned `Self`
+    // `let mut account`       → must be `mut` because we'll call &mut self methods later
+    let mut account = BankAccount::new(String::from("Micheal"), 4_000);
+
+    // ── 1. Method returning nothing () — CANNOT chain further ────────────
+    // `check_balance()` returns `()` (unit) → nothing to call the next method on
+    // This is a TERMINAL call — the chain ends here
+    account.check_balance();               // ✅ works alone
+    // account.check_balance().deposit(100); // ❌ ERROR: () has no method `deposit`
+
+    // ── 2. Methods returning &mut Self — chain with &mut self or &self ───
+    // `deposit(100)`  → takes &mut self, returns &mut Self
+    // `.withdraw(50)` → takes &mut self: ✅ &mut Self satisfies &mut self
+    // `.view_owner()` → takes &self:     ✅ &mut Self also satisfies &self (auto-deref)
+    //
+    // Read as: deposit returns a &mut account → call withdraw on it →
+    //          withdraw returns &mut account → call view_owner on it
+    account.deposit(100).withdraw(50).view_owner();
+
+    // ── 3. Method returning &Self — chain with &self methods ONLY ────────
+    // `view_owner()` → takes &self, returns &Self (immutable reference)
+    // `.check_balance()` → takes &self: ✅ &Self satisfies &self
+    //
+    // CANNOT chain a &mut self method after &Self:
+    // account.view_owner().deposit(100); // ❌ ERROR: cannot borrow as mutable
+    account.view_owner().check_balance();
+
+    // ── 4. Method returning owned Self — chain with ANY method form ──────
+    // `change_owner(...)` → takes owned `self`, returns owned `Self`
+    // Owned Self satisfies all three: self ✅, &self ✅, &mut self ✅
+    //
+    // IMPORTANT: after `.change_owner(...)`, `account` is MOVED into the method
+    // The chain must be completed or the result captured — `account` is gone after
+    //
+    // Chain reads left to right:
+    // 1. account is moved into change_owner → returns new owned Self ("new_owner")
+    // 2. that is moved into change_owner    → returns new owned Self ("another_owner")
+    // 3. that is mutably borrowed by deposit → returns &mut Self
+    // 4. that is immutably borrowed by view_owner → prints owner name
+    account
+        .change_owner(String::from("new_owner"))     // Self → Self
+        .change_owner(String::from("another_owner")) // Self → Self
+        .deposit(100)                                 // Self → &mut Self
+        .view_owner();                                // &mut Self → &Self (terminal here)
+
+    // After the chain above, `account` was consumed by change_owner →
+    // it no longer exists in this scope
+    //println!("account: {:?}", account); // ❌ would error — account was moved
+
+    // Method chaining works:
+    // A() . B()  →  output type of A must match/satisfy input type of B
+}
+
+/*
+--------------------------------------------------------------------------------------------
+Concept / Topic            | Explanation / Details
+---------------------------| ---------------------------------------------------------------
+Method Chaining in Rust    | - Allows consecutive method calls on the same instance.
+                           | - Validity of chain depends on how each method receives and returns  self.
+                           | - Chaining works when output of a method matches the input requirement of the next.
+
+Forms of  self  in Methods | - Methods can take self by ownership, by immutable reference, or by mutable reference.
+
+Summary of Chaining Rules  | - Self  (owned) → can chain with all three (self ,  &self ,  &mut self).
+                           | - &mut Self  → can chain with methods taking  &mut self  or  &self.
+                           | - &Self  → can only chain with methods taking  &self.
+                           | - Methods returning nothing, cannot be chained further.
+ -------------------------------------------------------------------------------------------
+*/
+
+/*
+----------------------------------------------------------------------------------------------
+Form of Self         | Can Chain To methods   | Can Chain to  methods  | Can Chain To methods
+                     | requiring self         | requiring &self        | requiring &mut self
+-------------------- | ---------------------  | ---------------------- |----------------------
+Self                 | ✅ Yes                 | ✅ Yes                | ✅ Yes 
+&Self                | ❌ No                  | ✅ Yes                | ❌ No
+&mut Self            | ❌ No                  | ✅ Yes                | ✅ Yes
+----------------------------------------------------------------------------------------------
+ */

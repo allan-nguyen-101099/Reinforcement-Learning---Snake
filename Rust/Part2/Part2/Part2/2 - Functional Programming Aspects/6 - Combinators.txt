@@ -1,0 +1,46 @@
+// -------------------------------------------
+//         - Combinators
+// -------------------------------------------
+
+fn main() {
+    let words = vec!["apple", "banana", "grape", "orange", "pear"];
+
+    // Imperative style (commented out) — manually loop, check, transform, collect
+    // let mut result: Vec<String> = vec![];
+    // for word in words {
+    //     if word.starts_with("a") || word.starts_with("b") {
+    //         let uppercase_word = word.to_uppercase();
+    //         result.push(uppercase_word);
+    //     }
+    // }
+    // println!("Result: {:?}", result);
+
+    // Functional/combinator style — chained iterator methods (all lazy until .collect())
+    let result: Vec<String> = words
+        .into_iter()  // consume words Vec, yield owned &str values
+        .filter(|&word| word.starts_with("a") || word.starts_with("b"))  // keep only a/b words
+        //      ^^ destructure the &&str that filter gives (iter yields &str, filter wraps in &)
+        .map(|word| word.to_uppercase())  // transform each &str into an uppercase String
+        .collect::<Vec<String>>();  // consume the iterator and gather results into Vec<String>
+        //         ^^^^^^^^^^^^ turbofish syntax: explicit type for collect() since it's ambiguous
+
+    println!("Result: {:?}", result);
+}
+
+/* 
+--------------------------------------------------------------------------------------------------------
+Concept/Topic           | Explanation
+------------------------|-------------------------------------------------------------------------------
+Combinators             | They are methods which oeprate on Iterators for transforming/filtering data.
+                        | They can be chained to express complex logic concisely.
+
+Common Combinator       |filter: It removes items based on a predicate closure.
+                        | map: It transforms each item into another form.
+                         
+collect Combinator      | It consumes an iterator and builds a collection.
+                        | Requires type information to determine output container (using turbo fish).
+
+Lazy Evaluation         | Combinators do not perform any computation until a consuming method is called.
+                        | collect() or next() triggers execution.
+--------------------------------------------------------------------------------------------------------
+*/

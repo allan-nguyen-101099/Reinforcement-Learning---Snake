@@ -1,0 +1,81 @@
+// -------------------------------------------
+// 			Generics
+// -------------------------------------------
+
+struct Point<T, U> {  // generic struct — T and U are type parameters (placeholders for any type)
+    x: T,             // x field has type T — determined when Point is created
+    y: U,             // y field has type U — can be a DIFFERENT type from T
+}
+
+impl<T, U> Point<T, U> {       // impl block must re-declare the same generic params T and U
+    fn new(x: T, y: U) -> Point<T, U> {  // constructor: accepts any T and U
+        Point { x, y }                   // field shorthand: same as Point { x: x, y: y }
+    }
+}
+
+impl Point<i32, i32> {          // concrete impl — ONLY for the i32, i32 specialization
+    fn printing(&self) {         // &self = immutable borrow of the Point instance
+        println!("The values of the coordinates are {}, {}", self.x, self.y);
+    }
+
+    fn new_1(x: i32, y: i32) -> Point<i32, i32> {  // alternate constructor for i32 only
+        Point { x, y }
+    }
+}
+
+impl Point<f64, f64> {          // another concrete impl — ONLY for the f64, f64 specialization
+    fn printing(&self) {         // same method name is allowed — different concrete type
+        println!("The values of the coordinates are {}, {}", self.x, self.y);
+    }
+}
+
+// Generic function — T and U must be the same for both p1 and p2
+fn add_points<T, U>(p1: &Point<T, U>, p2: &Point<T, U>) -> Point<T, U> {
+    unimplemented!();  // placeholder macro — panics if called; means body not yet written
+}
+
+// Non-generic version: only works for Point<i32, i32>
+fn add_points_i32(p1: &Point<i32, i32>, p2: &Point<i32, i32>) -> Point<i32, i32> {
+    unimplemented!();
+}
+
+// Non-generic version: only works for Point<f64, f64>
+fn add_points_f64(p1: &Point<f64, f64>, p2: &Point<f64, f64>) -> Point<f64, f64> {
+    unimplemented!();
+}
+
+fn main() {
+    let origin = Point::new(0, 0);      // T=i32, U=i32 — compiler infers from the values
+    let p1 = Point::new(1.0, 4.0);     // T=f64, U=f64
+
+    let p2 = Point::new(5, 5.0);       // T=i32, U=f64 — two DIFFERENT types for x and y
+
+    origin.printing();   // OK — origin is Point<i32,i32>, concrete impl exists
+    // p1.printing();   // would work too — p1 is Point<f64,f64>, concrete impl exists
+
+    add_points(&origin, &origin); // generic version — T=i32, U=i32 inferred from origin
+    add_points(&p1, &p1);         // generic version — T=f64, U=f64 inferred from p1
+}
+/* 
+-----------------------------------------------------------------------------------------------------------------
+Concept/Topic           | Explanation
+------------------------|----------------------------------------------------------------------------------------
+Generics Fundamentals   | Generics allow defining types and functions with placeholders for concrete types.
+                        | They enable reusable and flexible abstractions.
+                        | Generic parameters are declared inside angle brackets after the type or function name.
+
+Generic Structs         | Struct fields can use generic parameters instead of concrete types.
+                        | A single generic for all fields enforces the same type across fields.
+                        | Difference generics for each field allow fields to have different types.
+
+Generics in impl Blocks | Implementation blocks must explicitly declare generic parameters.
+                        | For instance, impl<T, U> struct<T, U>.
+
+Concrete impl           | impl blocks with concrete realizations for generics allow behavior for specific types.
+                        | Duplicate method names within overlapping impls are not allowed.
+
+Generic Free Functions  | Functions can also declare generic parameters independently of structs.
+                        | Rust generates concrete versions of generic code at compile time (monomorphization).
+                        | Monomorphization incurs no runtime cost but may increase binary size.
+-----------------------------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,50 @@
+// -------------------------------------------
+//      Computationally Intensive Functions
+// -------------------------------------------
+
+/*
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    let mut handles = vec![];
+
+    for handle in handles {
+        handle.await.unwrap();
+    }
+    println!("All tasks are now completed");
+}
+*/
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    let mut handles = vec![];
+
+    handles.push(tokio::spawn(async {
+        // heavy_computations();
+        let _result = tokio::task::spawn_blocking(|| {
+            heavy_computations();
+        })
+        .await;
+    }));
+
+    handles.push(tokio::spawn(async move {
+        simpler_computations().await;
+    }));
+
+    for handle in handles {
+        handle.await.unwrap();
+    }
+    println!("All tasks are now completed");
+}
+
+fn heavy_computations() {
+    println!("fn heavy_computations started");
+    let mut d = 0;
+    for i in 0..300_000_000 {
+        d = d + 1;
+    }
+    println!("fn heavy_computations completed");
+}
+
+async fn simpler_computations() {
+    println!("fn simpler_computations started");
+    println!("fn simpler_computations completed");
+}

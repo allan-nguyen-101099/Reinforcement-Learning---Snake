@@ -1,0 +1,51 @@
+// -------------------------------------------
+// 		RefCell Example
+// -------------------------------------------
+use std::{cell::RefCell, rc::Rc};
+
+#[derive(Debug)]
+struct File {
+    active_user: u32,  // counter tracking how many users have this file open
+}
+
+#[derive(Debug)]
+struct User {
+    file: Rc<RefCell<File>>,  // Rc = shared ownership (multiple Users share the same File)
+                               // RefCell = interior mutability (each User can mutate active_user)
+}
+
+fn main() {
+    // Create the shared file wrapped in Rc<RefCell<...>>
+    let mut txt_file = Rc::new(RefCell::new((File { active_user: 0 })));
+
+    // user_1 gets its own Rc clone — same heap allocation, count = 2
+    let mut user_1 = User {
+        file: Rc::clone(&txt_file),  // Rc::clone increments count, does NOT copy File
+    };
+    user_1.file.borrow_mut().active_user += 1;  // .borrow_mut() acquires runtime mutable borrow
+                                                  // += 1 mutates the shared File's active_user field
+    println!("Active users: {:?}", txt_file.borrow().active_user);  // .borrow() = immutable view
+
+    // user_2 also gets its own Rc clone — count = 3
+    let mut user_2 = User {
+        file: Rc::clone(&txt_file),
+    };
+    user_2.file.borrow_mut().active_user += 1;  // mutates through user_2's Rc clone — visible to all
+    println!("Active users: {:?}", txt_file.borrow().active_user);  // shows 2 now
+}
+
+
+/* 
+-----------------------------------------------------------------------------------------------------
+Concept / Topic               | Explanation
+------------------------------|----------------------------------------------------------------------
+Immutability Limitation of Rc | Rc<T> only provides immutable access to shared data.
+
+Combining Rc with RefCell     | RefCell<T> enables interior mutability with runtime borrow checking.
+                              | Wrapping Refcell by an Rc allows mutation with shared owners.
+                                
+Shared State Visibility       | All Rc clones point to the same underlying heap allocation.
+                              | Updates through one owner are visible to all owners.
+                              | This pattern is common for shared resource management.
+---------------------------------------------------------------------------------------------------- 
+*/

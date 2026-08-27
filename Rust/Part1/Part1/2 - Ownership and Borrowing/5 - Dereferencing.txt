@@ -1,0 +1,50 @@
+// -------------------------------------------
+//	    Dereferencing
+//      - Dereferencing of stack allocated types
+//      - Dereferencing of heap allocated types
+// -------------------------------------------
+
+// Borrowing = sharing access
+// Dereferencing = using value behind a reference
+fn main() {
+    // Dereferencing of stack allocated types
+    let mut some_data = 42;
+    let ref_1 = &mut some_data;
+    let deref_copy = *ref_1;
+    *ref_1 = 13;
+    println!("some_data is {some_data}, deref_copy is: {deref_copy}");
+
+    // Owned types: No & sign at the start of the type
+    // Borrowed types: starts with & sign at the start of the type
+
+    // Dereferencing of heap allocated types
+    let mut heap_data = vec![5, 6, 7];
+    let ref_1 = &mut heap_data;
+    // let deref_copy = *ref_1;
+    ref_1.push(8);
+    (*ref_1).push(8);
+}
+/*
+Summary
+------------------------------------------------------------------------------------------------------------------------------
+Concept                        | Explanation
+-------------------------------|----------------------------------------------------------------------------------------------
+Dereferencing                  | Opposite of referencing
+                               | Allows following a reference using * for accessing underlying value directly
+                               | Borrowing = sharing access, dereferencing = using the value behind a reference
+
+Owned and Borrowed types       | Owned types have no & sign at start, while borrowed types begin with &
+                               | Applying the deref operator * on a borrowed type yields an owned type
+
+Stack-allocated types          | Applying deref and assignment results in a copy
+                               | With deref of a mutable reference, we can update the original variable
+
+Heap-allocated types           | Applying Deref and assigning is not allowed
+                               | becuase of ownership move and dangling reference
+                               | Updates can be done using (*ref).method() syntax
+
+Parentheses in deref calls     | Ensure dereferencing happens before method call
+                               | Without paranthesis, Rust tries to deref the method’s return value
+-------------------------------|----------------------------------------------------------------------------------------------
+*/
+

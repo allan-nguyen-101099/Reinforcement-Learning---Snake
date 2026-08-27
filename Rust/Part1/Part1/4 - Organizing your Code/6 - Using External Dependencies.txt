@@ -1,0 +1,38 @@
+// -------------------------------------------
+// 			Extenal Dependencies
+// -------------------------------------------
+use array_tool::vec::*;
+use my_package::{Category, Customer, Order, Product};
+fn main() {
+    let product1 = Product::new(1, String::from("Laptop"), 799.99, Category::Electronics);
+    let product2 = Product::new(2, String::from("T-Shirt"), 20.0, Category::Clothing);
+    let product3 = Product::new(3, String::from("Book"), 10.0, Category::Books);
+
+    let set1: Vec<&Product> = vec![&product1, &product2];
+    let set2: Vec<&Product> = vec![&product2, &product3];
+    let intersection = set1.intersect(set2);
+    println!("The intersection is: {:?}", intersection);
+}
+/*
+-----------------------------------------------------------------------------------------------------------------------
+Topic / Concept          | Explanation
+-----------------------------------------------------------------------------------------------------------------------
+External Dependencies    |- External crates offer ready-made solutions for common tasks, reducing costs.
+                         |- Crates.io is Rust’s public package registry where developers can search for crates.
+                         |- Each crate page typically provides documentation to guide usage.
+                         |- Popularity indicators help users decide which crate to use.
+
+Adding Dependencies      |- Dependencies are added by placing entries under the [dependencies] in Cargo.toml.
+                         |- Cargo automatically fetches and makes the crate available for use.
+                         |- Items from dependency are brought into scope using the `use` keyword.
+
+Benefits of Dependencies |- They improve reusability by offering well-tested solutions for common tasks.
+                         |- Using external libraries lets developers focus on core project logic.
+                         |- Community-standard crates enhance code readability and consistency.
+
+Choosing Dependencies    |- Select crates that are actively maintained and well documented.
+                         |- Avoid excessive dependencies, as each crate increases binary size.
+                         |- Prefer crates that are easy to understand, especially when internal behavior matters.
+------------------------------- ---------------------------------------------------------------------------------------
+
+ */

@@ -1,0 +1,60 @@
+// -------------------------------------------
+//           	- Simplifying structures
+// -------------------------------------------
+
+// The problem (commented out): borrowing any field of A mutably borrows the ENTIRE struct
+// fn fn1(a: &mut A) -> &u32 { &a.f2 }   // borrows all of A
+// fn fn2(a: &mut A) -> u32 { a.f1 + a.f3 }  // also borrows all of A
+// fn fn3(a: &mut A) {
+//     let x = fn1(a);  // mutably borrows A
+//     let y = fn2(a);  // ERROR: A already mutably borrowed by fn1
+//     println!("{}", x);
+// }
+// --------- Problem Ends ------
+
+// ---------- Solution: decompose A into independent sub-structs --------
+struct A {
+    b: B,  // B holds f2 — independent from C
+    c: C,  // C holds f1 and f3 — independent from B
+}
+struct B {
+    f2: u32,  // only the fields that fn1 needs
+}
+struct C {
+    f1: u32,  // fields that fn2 needs
+    f3: u32,
+}
+
+fn fn1(b: &mut B) -> &u32 {  // borrows only B — not all of A
+    &b.f2
+}
+fn fn2(c: &mut C) -> u32 {   // borrows only C — not all of A
+    c.f1 + c.f3
+}
+
+fn fn3(a: &mut A) {
+    let x = fn1(&mut a.b);  // borrow a.b — compiler sees this as borrowing B independently
+    let y = fn2(&mut a.c);  // borrow a.c — B and C are DIFFERENT fields, so borrow checker allows both
+    println!("{}", x);      // OK: x still valid, a.b is still borrowed but a.c borrow ended
+}
+
+fn main() {}
+
+/* 
+----------------------------------------------------------------------------------------------------
+Concept / Topic        | Explanation
+-----------------------|----------------------------------------------------------------------------
+Borrowing Whole Struct | Borrowing a struct field mutably, resulting in borrows the entire struct.
+                       | This prevents additional mutable borrows of the same struct.
+
+Struct Decomposition   | Splitting the struct into smaller sub-structures can solve this problem.
+                       | Each smaller struct can then be borrowed independently.
+
+Borrowing Flexibility  | After decomposition, functions can borrow only the required sub-structure.
+                       | The borrow checker can recognize that different fields are independent.
+                       | This allows simultaneous mutable borrows of different parts of the data.
+
+Design Benefit         | Decomposing large structures often improves program design.
+                       | Smaller structs are easier to understand and manage.
+-----------------------------------------------------------------------------------------------------
+*/

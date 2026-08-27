@@ -1,0 +1,80 @@
+// -------------------------------------------------
+// 		Debugging Iterator Pipelines
+// -------------------------------------------------
+
+fn main() {
+    let inputs = vec![" 23 ", "NaN", "", "42", "abc", "35"];
+
+    // Full pipeline in one chain (hard to debug if something goes wrong)
+    let avg = inputs
+        .into_iter()
+        .map(str::trim)  // str::trim as a function pointer — removes leading/trailing whitespace
+        .filter(|s| !s.is_empty() && s.chars().all(char::is_numeric))  // keep valid digit strings
+        .map(|s| s.parse::<u32>().unwrap())  // parse to u32 — safe because filter guarantees digits
+        .fold((0, 0), |(sum, count), x| (sum + x, count + 1));
+        //    ^^^^^^  initial accumulator: (sum=0, count=0)
+        //                   ^^^^^^^^^^^  closure: destructure the tuple accumulator
+
+    let average = avg.0 as f64 / avg.1 as f64;  // avg.0 = total sum, avg.1 = element count
+    println!("Average age: {:.2}", average);    // {:.2} — format with 2 decimal places
+
+    // Approach 1: Break the chain — collect each stage into a Vec to inspect it
+    let inputs = vec![" 23 ", "NaN", "", "42", "abc", "35"];
+
+    let stage1: Vec<_> = inputs.into_iter().collect();  // Vec<_> — _ lets compiler infer element type
+    println!("Stage 1 (raw): {:?}", stage1);
+
+    let stage2: Vec<_> = stage1.into_iter().map(str::trim).collect();
+    println!("Stage 2 (trimmed): {:?}", stage2);
+
+    let stage3: Vec<_> = stage2
+        .into_iter()
+        .filter(|s| !s.is_empty() && s.chars().all(char::is_numeric))
+        .collect();
+    println!("Stage 3 (filtered valid) {:?}", stage3);
+
+    let stage4: Vec<u32> = stage3
+        .into_iter()
+        .map(|s| s.parse::<u32>().unwrap())
+        .collect();
+    println!("Stage 4 (parsed ints): {:?}", stage4);
+
+    let stage5 = stage4
+        .iter()
+        .fold((0, 0), |(sum, count), x| (sum + x, count + 1));
+
+    let average = stage5.0 as f64 / stage5.1 as f64;
+    println!("Average age: {:.2}", average);
+
+    // Approach 2: inspect() — peek at each element WITHOUT breaking the chain
+    // inspect() is like a tap: it runs a closure for side effects, passes value through unchanged
+    let inputs = vec![" 23 ", "NaN", "", "42", "abc", "35"];
+    let avg = inputs
+        .into_iter()
+        .inspect(|s| println!("[raw] {:?}", s))        // peek before trim
+        .map(str::trim)
+        .inspect(|s| println!("[trimmed] {:?}", s))    // peek after trim
+        .filter(|s| !s.is_empty() && s.chars().all(char::is_numeric))
+        .inspect(|s| println!("[valid] {:?}", s))      // peek after filter
+        .map(|s| s.parse::<u32>().unwrap())
+        .inspect(|s| println!("[prased] {:?}", s))     // peek after parse
+        .fold((0, 0), |(sum, count), x| (sum + x, count + 1));
+
+    let average = avg.0 as f64 / avg.1 as f64;
+    println!("Average age: {:.2}", average);
+}
+
+
+/*
+-----------------------------------------------------------------------------------------
+Without inspect()                           | With inspect()
+-----------------------------------------------------------------------------------------
+Analysis is on per stage basis              | Analysis is on per element basis
+
+Requires alot of intermediate setup         | Requires little to no setup
+
+Requires breaking the chain                 | Inline debugging without disrupting chain
+and printing manually
+-----------------------------------------------------------------------------------------
+
+*/

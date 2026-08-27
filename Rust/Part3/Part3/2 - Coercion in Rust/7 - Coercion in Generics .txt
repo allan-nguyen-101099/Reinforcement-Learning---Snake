@@ -1,0 +1,37 @@
+//-|------------------------------------------
+// 	  Coercion in Generic Functions
+//-|------------------------------------------
+
+trait Some_Trait {}
+struct A;
+fn generic_fn<T: Some_Trait>(x: T) {}
+
+impl Some_Trait for &A {}
+impl Some_Trait for &mut A {}
+// fn generic_fn_immutable_ref(x: &A) {}
+// fn generic_fn_mutable_ref(x: &mut A) {}
+fn main() {
+    let mut a = A;
+    generic_fn(&a);
+    generic_fn(&mut a);
+}
+
+/* 
+---------------------------------------------------------------------------------------------------------------------------
+Concept/Topic             | Explanation                                                                                                                     
+--------------------------|------------------------------------------------------------------------------------------------
+Generics and Coercion     | Generic functions are monomorphized (specialized versions for each concrete type used).          
+                          | A function accepting a generic T, when called with T = &SomeType and T = &mut Sometype
+                          | leads to two different specalized versions, one for each type.      
+                          | Rust does not automatically reuse one version by coercing &mut Sometype -> &Sometype.                       
+
+Trait Bounds and Coercion | When a trait bound exists for a genreic (T: SomeTrait), 
+                          | Rust must ensure that the exact type satisfies the bound.         
+
+Example                   | If T = &A in the call (and T: SomeTrait), then &A must implement SomeTrait. 
+                          | If T = &mut A in the call (and T: SomeTrait), then &mut A must also implement SomeTrait. 
+                          | Coercion from &mut A -> &A not happens, to make trait bounds succeed in generic trait resolution.            
+
+Key takeaway              | Coercion does not happen during trait resolution. 
+-------------------------------------------------------------------------------------------------------------------------------
+*/

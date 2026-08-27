@@ -1,0 +1,71 @@
+// -------------------------------------------
+// 			Closures
+// -------------------------------------------
+
+struct User {
+    name: String,
+    age: u8,
+    salary: u32,
+}
+
+// fn validate_user(name: &str) -> bool {
+//     name.len() != 0
+// }
+
+// is_valid_user takes two GENERIC validators constrained by closure traits
+fn is_valid_user<V1, V2>(name: &str, age: u8, simple_validator: V1, advance_validator: V2) -> bool
+where
+    V1: FnOnce(&str) -> bool,  // FnOnce — can only be called ONCE (captures by value or moves)
+    V2: Fn(u8) -> bool,        // Fn — can be called MULTIPLE TIMES (captures by immutable reference)
+{
+    simple_validator(name) && advance_validator(age)  // short-circuit: if simple is false, advance not called
+}
+fn main() {
+    let person_1 = User {
+        name: String::from("someone"),
+        age: 35,
+        salary: 40_000,
+    };
+
+    let mut banned_user = String::from("banned user");
+
+    // `move` — forces closure to TAKE OWNERSHIP of banned_user (moves it into the closure)
+    // Without `move`, the closure would borrow banned_user, but it may not live long enough
+    let validate_user_simple = move |name: &str| {   // |...| starts a closure (anonymous function)
+        let banned_user_name = &banned_user;          // &banned_user borrows the moved copy inside closure
+        name.len() != 0 && name != banned_user_name   // && = short-circuit AND
+    };
+    //println!("{banned_user}");  // ERROR: banned_user was MOVED into the closure above
+
+    let validate_user_advance = |age: u8| age >= 30;  // simple one-liner closure, borrows nothing
+    println!(
+        "User validity {}",
+        is_valid_user(
+            &person_1.name,           // pass name as &str reference
+            person_1.age,
+            validate_user_simple,     // passes the closure as V1: FnOnce
+            validate_user_advance     // passes the closure as V2: Fn
+        )
+    );
+}
+/*
+------------------------------------------------------------------------------------------------------
+Concept/Topic             | Explanation
+--------------------------|---------------------------------------------------------------------------
+Closures Basics           | They are anonymous functions with no names. 
+                          | They can be stored in variables or passed as arguments.
+                          | Rust infers parameter and return types in closures when possible. 
+                          | They can captured the variables from their enviroments.
+                          | Each closure has a unique concrete type.
+                          | They can be passed to function using generics with trait bounds.
+
+Environment Capture Modes | Closures capture external variables in three ways.
+                          | Immutable borrow in which case it implements Fn trait.
+                          | Mutable borrow in which case it implements FnMut trait.
+                          | Ownership move in which case it implements FnOnce trait.
+
+move Keyword              | The move keyword forces captured variables to be moved into the closure.
+                          | Even references become owned inside the closure.
+                          | This prevents later access to moved variables.
+------------------------------------------------------------------------------------------------------
+*/

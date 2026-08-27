@@ -1,0 +1,99 @@
+// -------------------------------------------
+// 	      Coercion
+// -------------------------------------------
+
+// Coercion: One_type -> Another_type (implicitly)
+
+// pub trait Deref {
+//     type Target: ?Sized;
+
+//     fn deref(&self) -> &Self::Target;
+// }
+
+// Deref Coercion: &T -> &U
+// if Deref Trait is implemented for T that convert &T to &U usind deref method
+// &String -> &str
+
+use std::ops::Deref;
+
+fn accept_str(s: &str) {
+    // either &str or &String
+    println!("Recieved: {s}");
+}
+
+struct HtmlText {
+    contents: String,
+    is_escaped: bool,
+}
+
+impl Deref for HtmlText {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.contents
+    }
+}
+
+fn print_length(s: &String) {
+    println!("Length: {}", s.len());
+}
+fn main() {
+    let s = String::from("Some String");
+    accept_str(&s); // accept_str(s.deref())
+
+    let html_input = HtmlText {
+        contents: String::from("<b>Hello</b>"),
+        is_escaped: false,
+    };
+
+    // Coercion: &HtmlText -> &String
+    print_length(&html_input); // print_length(&html_input.deref())
+    if html_input.contains("Hello") {
+        println!("Found 'Hello' in HTML content!");
+    }
+
+    // Common Deref Coercions
+    // 1. &String -> &str
+    // 2. &Vec<T> -> &[T]
+    // 3. &Box<T> ->  &T
+
+    // 2. &Vec<T> -> &[T]
+    let array: &[i32];
+    let vec = &vec![1, 2, 3];
+    array = vec;
+
+    // 3. &Box<T> ->  &T
+    let i: &i32;
+    let value = Box::new(5);
+    i = &value;
+}
+// DerefMut trait implementation for T, enables &mut T to &mut U
+// 1. &mut String -> &mut str
+// 2. &mut Vec<T> -> &mut [T]
+// 3. &mut Box<T> -> &mut T
+
+/*
+----------------------------------------------------------------------------------------------------------------
+Concept/Topic              | Explanation
+---------------------------|------------------------------------------------------------------------------------
+Type Coercion in Rust      | Coercion is an implicit conversion from one type to another without explicit casts.
+                           | It can occur in function arguments, method calls, and assignments.
+                           | Coercion has many types, we covered Deref Coercion in this lesson.
+
+Deref Coercion             | Deref coercion converts a reference to one type into a reference to another type.
+(Deref trait)              | It works for types that implement the Deref.
+                           | Coercion from &T to &U is possible if T implements Deref<Target = U>.
+
+&String to &str Coercion   | This is enabled by String’s Deref implementation targeting str.
+                           | It allows &String to be passed where &str is expected.
+
+Custom Type Deref Coercion | User-defined types can participate in deref coercion by implementing Deref.
+(custom structs)           | A reference to the custom type is coerced to a reference to its target type.
+
+Common Deref Coercions     | Rust provides several built-in deref coercions for standard types.
+(standard patterns)        | Examples include &Vec<T> to &[T], &Box<T> to &T, and &String to &str.
+
+Mutable Deref Coercion     | Mutable deref coercion is enabled through the DerefMut trait.
+(DerefMut trait)           | It allows coercion from &mut T to &mut U under rules simillar to deref Ceorcion.
+-----------------------------------------------------------------------------------------------------------------
+*/

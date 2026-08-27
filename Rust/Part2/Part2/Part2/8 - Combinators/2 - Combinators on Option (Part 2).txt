@@ -1,0 +1,64 @@
+// -------------------------------------------------
+// 			- Combinators on Option
+// -------------------------------------------------
+// chrono = "0.4.44"
+
+use chrono::*;
+fn main() {
+    // 3. or(alternate_value) — keep current Some, or use an alternate Option if None
+    // Eager: alternate_value is ALWAYS evaluated, even if primary is Some
+    let primary = Some(1);
+    let alternative_value = Some(10);
+    let result = primary.or(alternative_value);  // Some(1) — primary kept
+
+    // Real-world: config value waterfall — try env, then file, then default
+    let env_value = std::env::var("CONFIG_PATH").ok();  // .ok() converts Result<String,_> to Option<String>
+    let file_value = Some(String::from("Configuration values from a file"));
+    let default_value = Some(String::from("default configuration"));
+    let config_value = env_value.or(file_value).or(default_value);  // first Some wins
+
+    // 4. or_else(closure) — like or() but LAZY: closure only runs if value is None
+    let cached_result = Some(1);
+    let resolved_result = cached_result.or_else(|| {  // closure NOT called — cached_result is Some
+        println!("Computing expensive alternative value...");  // would only run if cached_result were None
+        std::thread::sleep(std::time::Duration::from_secs(2));
+        Some(42)
+    });
+
+    // 5. filter(predicate) — keep Some only if predicate is true, otherwise return None
+    let child_age = Some(10);
+    let is_adult = child_age.filter(|&a| a >= 18);  // None — 10 < 18, predicate fails
+    //                               ^^ & in |&a| destructures the &&u8 that filter passes
+
+    // 6. unwrap_or(default) — get inner value, or a static default if None (Eager)
+    let user = Some("Alice");
+    let name = user.unwrap_or("guest");  // "Alice" — user is Some
+
+    // 7. unwrap_or_else(closure) — get inner value, or compute fallback lazily if None
+    let greeting_for_user: Option<&str> = None;
+    let greetings = greeting_for_user.unwrap_or_else(|| {  // closure runs because value is None
+        let hour = Local::now().hour();  // chrono: get current hour
+        if hour < 12 {
+            "Good morning"
+        } else if hour < 18 {
+            "Good afternoon"
+        } else {
+            "Good evening"
+        }
+    });
+}
+
+/*
+----------------------------------------------------------------------------------------------------------------------
+Combinator        | If Some(value)                              | If None                              | Fallback Type
+---------------------------------------------------------------------------------------------------------------------
+1. map            | Applies closure/function and wraps in Some  | Returns None                         | Eager
+2. and_then       | Applies closure and returns option          | Returns None                         | Eager
+3. or             | Keeps current Some(value)                   | Returns provided alternate Option    | Eager
+4. or_else        | Keeps current Some(value)                   | Calls closure to compute alternative | Lazy
+5. filter         | Keeps current Some(value) if predicate true | Returns None if predicate is false   | Eager
+6. unwrap_or      | Unwraps the value                           | Returns provided default             | Eager
+7. unwrap_or_else | Unwraps the value                           | Calls closure to compute alternative | Lazy
+---------------------------------------------------------------------------------------------------------------------
+*/
+

@@ -1,0 +1,163 @@
+// -------------------------------------------
+//              Lifetimes
+// -------------------------------------------
+
+// Lifetimes are Rust's way of tracking HOW LONG a reference is valid.
+// They prevent dangling references (referencing freed memory).
+// The compiler has a "borrow checker" that validates lifetimes at compile time.
+// Most of the time, the compiler infers lifetimes automatically (lifetime elision).
+// You only need to write them explicitly when the compiler cannot figure it out.
+
+// -------------------------------------------
+// 1. The Problem Lifetimes Solve
+// -------------------------------------------
+
+// This would be a dangling reference — Rust REFUSES to compile it:
+// fn bad() -> &String {
+//     let s = String::from("hello");
+//     &s          // s is dropped here — reference would point to freed memory
+// }
+
+// -------------------------------------------
+// 2. Why Lifetime Annotations Are Sometimes Needed
+// -------------------------------------------
+
+// This function compares two strings and returns one of them.
+// The compiler cannot know whether the return value lives as long as x or y.
+// So you must tell it explicitly with a lifetime annotation.
+
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+//         ^^    ^^           ^^            ^^
+//         lifetime parameter 'a
+//         means: the returned reference lives at least as long as
+//         BOTH x and y (the shorter of the two lifetimes)
+    if x.len() > y.len() { x } else { y }
+}
+
+// Usage:
+fn demo_longest() {
+    let s1 = String::from("long string");
+    let result;
+    {
+        let s2 = String::from("xy");
+        result = longest(s1.as_str(), s2.as_str());
+        println!("{}", result);   // OK — both s1 and s2 alive here
+    }
+    // println!("{}", result);   // ERROR — s2 dropped, result might refer to it
+}
+
+// -------------------------------------------
+// 3. Lifetime Annotations in Structs
+// -------------------------------------------
+
+// If a struct holds a REFERENCE, it needs a lifetime annotation.
+// This means: an instance of ImportantExcerpt cannot outlive the reference in 'part'.
+
+struct ImportantExcerpt<'a> {
+    part: &'a str,      // this reference must stay valid as long as the struct exists
+}
+
+impl<'a> ImportantExcerpt<'a> {
+    fn level(&self) -> i32 { 3 }
+
+    fn announce(&self, announcement: &str) -> &str {
+        // compiler uses elision rules to infer that return lifetime = self's lifetime
+        self.part
+    }
+}
+
+fn demo_struct() {
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence;
+    {
+        let i = novel.split('.').next().expect("Could not find a '.'");
+        first_sentence = ImportantExcerpt { part: i };
+        println!("{}", first_sentence.part);  // OK — novel is still alive
+    }
+}
+
+// -------------------------------------------
+// 4. Lifetime Elision Rules (when you DON'T need to write lifetimes)
+// -------------------------------------------
+
+// Rule 1: Each reference parameter gets its own lifetime
+//   fn foo(x: &str, y: &str)  →  fn foo<'a, 'b>(x: &'a str, y: &'b str)
+
+// Rule 2: If there is exactly one input reference, its lifetime goes to the output
+//   fn foo(x: &str) -> &str  →  fn foo<'a>(x: &'a str) -> &'a str
+
+// Rule 3: If one of the inputs is &self or &mut self, the output gets self's lifetime
+//   (this covers most method cases)
+
+fn first_word(s: &str) -> &str {   // no annotation needed — rule 1 + 2 apply
+    let bytes = s.as_bytes();
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[0..i];
+        }
+    }
+    &s[..]
+}
+
+// -------------------------------------------
+// 5. The Static Lifetime
+// -------------------------------------------
+
+// 'static means the reference lives for the ENTIRE duration of the program.
+// String literals are always 'static because they are embedded in the binary.
+
+let s: &'static str = "I live forever";
+
+// Be careful: don't use 'static just to silence the compiler.
+// It should only be used when the data genuinely lives for the program's lifetime.
+
+// -------------------------------------------
+// 6. Combining Generics + Trait Bounds + Lifetimes
+// -------------------------------------------
+
+use std::fmt::Display;
+
+fn longest_with_announcement<'a, T>(
+    x: &'a str,
+    y: &'a str,
+    ann: T,
+) -> &'a str
+where
+    T: Display,
+{
+    println!("Announcement: {}", ann);
+    if x.len() > y.len() { x } else { y }
+}
+
+/*
+---------------------------------------------------------------------------------------------------------------
+Concept / Topic              | Explanation
+---------------------------------------------------------------------------------------------------------------
+What are Lifetimes?          | - Lifetimes describe how long a reference is valid.
+                             | - The borrow checker uses them to prevent dangling references.
+                             | - Most lifetimes are inferred automatically (lifetime elision).
+
+Lifetime Annotation Syntax   | - Written with a tick: 'a, 'b, 'long, etc. (any name after tick)
+                             | - fn foo<'a>(x: &'a str, y: &'a str) -> &'a str
+                             | - Means: output reference lives as long as the SHORTER of x and y.
+
+When You Need Annotations    | - When a function takes multiple references and returns one of them.
+                             | - When a struct holds a reference field.
+                             | - When the compiler cannot infer which input drives the output lifetime.
+
+Lifetime Elision Rules       | - Rule 1: Each input reference gets its own lifetime.
+                             | - Rule 2: One input reference → its lifetime goes to the output.
+                             | - Rule 3: &self or &mut self present → output gets self's lifetime.
+                             | - If these rules fully resolve all lifetimes, no annotations needed.
+
+'static Lifetime             | - Reference lives for the entire program duration.
+                             | - All string literals have 'static lifetime.
+                             | - Do not overuse — only for genuinely program-wide data.
+
+Lifetime in Structs          | - If a struct field is a reference, add 'a to the struct and field.
+                             | - Ensures struct cannot outlive the data it references.
+
+C++ Comparison               | - C++ has no equivalent — dangling references are silent UB.
+                             | - Rust catches all dangling references at compile time.
+---------------------------------------------------------------------------------------------------------------
+*/

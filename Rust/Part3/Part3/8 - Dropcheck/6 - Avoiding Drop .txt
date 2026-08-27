@@ -1,0 +1,77 @@
+use std::mem::{self, ManuallyDrop};
+
+// -------------------------------------------
+// 	        Avoiding Dropping
+//              - Forget drop
+//              - Manually drop
+// -------------------------------------------
+struct Data {
+    vec: Vec<i32>,
+}
+
+impl Data {
+    fn new() -> Self {
+        Self {
+            vec: Vec::with_capacity(0),
+        }
+    }
+}
+
+impl Drop for Data {
+    fn drop(&mut self) {
+        // expensive_operation();
+        println!("Dropping Data");
+    }
+}
+fn main() {
+    // Usecase 1: Data may be not intialized
+    // let data = Data::new();
+    // let data_initialized = false;
+    // if !data_initialized {
+    //     mem::forget(data);
+    //     //let x = data;
+    //     //drop(data); // not valid
+    // }
+
+    // Usecase 2: Benchmarking
+    // let start = std::time::Instant::now();
+    // for _ in 0..1_000_000 {
+    //     {
+    //         let v = vec![0; 100];
+    //         mem::forget(v);
+    //     }
+    // }
+    // let duration = start.elapsed();
+
+    // Manually drop
+    let mut data = ManuallyDrop::new(Data::new());
+
+    unsafe {
+        ManuallyDrop::drop(&mut data);
+    }
+}
+
+
+/* 
+----------------------------------------------------------------------------------------------------------
+Concept/Topic           | Explanation
+------------------------|---------------------------------------------------------------------------------
+Avoiding Drop Execution | In some cases, calling drop is undesirable due to expensive cleanup logic.
+                        | mem::forget can used to intentionally skip automatic dropping.
+                        | It takes ownership of the value and tells the compiler to stop tracking it.
+
+Implications of forget  | A forgotten value is considered moved and inaccessible.
+                        | This prevents any further use, including calling drop.
+                               
+mem::forget Use Case    | In benchmarking to exclude deallocation costs.
+
+ManuallyDrop Wrapper    | ManuallyDrop<T> disables automatic dropping in a controlled manner.
+                        | The value is not dropped unless explicitly requested by the programmer.
+                        | This allows delayed or conditional destruction.
+                        | It useful when transferring ownership to external systems.
+
+Key Differences         | Both approaches prevent automatic drop but differ in structure and safety.
+                        | mem::forget permanently skips drop in safe code.
+                        | ManuallyDrop allows explicit drop in unsafe contexts.
+----------------------------------------------------------------------------------------------------------
+*/

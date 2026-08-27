@@ -1,0 +1,52 @@
+// -------------------------------------------------
+// 		- Error Messages and Error Codes
+// -------------------------------------------------
+fn main() {
+    // This code contains an INTENTIONAL TYPE MISMATCH to demonstrate Rust error messages.
+    //
+    // `let x: i32`          → declares variable `x` with explicit type i32 (signed integer)
+    // `= String::from("Hello")` → the right-hand side produces a `String` value
+    //
+    // The MISMATCH: `x` is annotated as `i32` but assigned a `String`.
+    // Rust performs NO implicit type conversion, so this is a COMPILE-TIME ERROR:
+    //
+    //   error[E0308]: mismatched types
+    //    --> src/main.rs:2:19
+    //     |
+    //   2 |     let x: i32 = String::from("Hello");
+    //     |            ---   ^^^^^^^^^^^^^^^^^^^^^^ expected `i32`, found `String`
+    //     |            |
+    //     |            expected due to this
+    //
+    // ── How to Read a Rust Error Message ─────────────────────────────────────
+    // `error[E0308]`         → the ERROR CODE
+    //                          Always starts with `E` followed by 4 digits
+    //                          Every error type has a unique code for easy lookup
+    // `mismatched types`     → HUMAN-READABLE DESCRIPTION of what went wrong
+    // `src/main.rs:2:19`     → FILE : LINE : COLUMN where the error occurred
+    // Code span arrows `^^^` → VISUALLY POINTS to the exact piece of problematic code
+    // `expected ... found`   → tells you WHAT TYPE was needed vs WHAT was actually given
+    //
+    // ── Getting More Help ────────────────────────────────────────────────
+    // Run in your terminal for a DETAILED explanation of any error code:
+    //   rustc --explain E0308
+    //   (Replace E0308 with whatever error code you want to understand)
+    //
+    // Online reference for all error codes:
+    let x: i32 = String::from("Hello");
+}
+// https://doc.rust-lang.org/error_codes/error-index.html
+// → The official Rust Error Codes Index: detailed explanations for every error code
+
+/*
+-------------------------------- | ------------------------------------------------------------------------------------------------------
+Topic                            | Description  
+-------------------------------- | ------------------------------------------------------------------------------------------------------ 
+Components of an Error Message   | 1. An error code, starts with `E` followed by four digits, E0308 
+                                 | 2. A human-readable description
+                                 | 3. Code span highlighting that caused the error
+                                 | 4. A suggested fix
+Getting Extended Explanations    | Running rustc --explain <error-code>
+Online Error Code Index          | The Rust Error Codes Index in official documentation
+-------------------------------- | ------------------------------------------------------------------------------------------------------
+*/

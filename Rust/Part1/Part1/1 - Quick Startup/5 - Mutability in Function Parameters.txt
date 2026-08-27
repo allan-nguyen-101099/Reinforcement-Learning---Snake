@@ -1,0 +1,71 @@
+// -------------------------------------------------
+// 			Mutability in Function Parameters
+// -------------------------------------------------
+
+// ── Function: prints_number ────────────────────────────────────────────────────────
+//
+// `fn`              → keyword: declares a function
+// `prints_number`   → the function's name (snake_case)
+// `x: i32`          → parameter `x` of type i32
+//                     IMPORTANT: parameters are IMMUTABLE by default, just like `let` variables
+//                     You CANNOT write `x = x + 2` directly without making it mutable first
+// `-> i32`          → the function returns an i32 value
+fn prints_number(x: i32) -> i32 {
+    // To mutate a parameter, SHADOW it with a new mutable local variable of the same name.
+    //
+    // `let mut x`   → declares a NEW mutable local variable ALSO named `x`
+    //                 This SHADOWS the immutable parameter `x`
+    // `= x`         → initializes the new mutable `x` with the VALUE of the parameter `x`
+    //                 Only the VALUE is copied; the MUTABILITY configuration is NOT inherited
+    let mut x = x;
+
+    // Now `x` refers to the mutable shadowed variable, so reassignment is allowed.
+    // `x`           → the mutable local `x`
+    // `=`           → reassignment (no `let` — changing the existing variable)
+    // `x + 2`       → takes current value (10) and adds 2 → result: 12
+    x = x + 2;
+
+    // Prints the updated value of the local mutable `x`
+    println!("{x}"); // Output: 12
+
+    // `x` as the last expression (NO semicolon) → this is the IMPLICIT RETURN VALUE
+    // Returns the final value of local `x`: 12
+    x
+}
+
+fn main() {
+    // `let mut num` → mutable variable initialized to 10
+    let mut num = 10;
+
+    // Calling `prints_number(num)`:
+    //   - Only the VALUE of `num` (10) is passed into the function
+    //   - The MUTABILITY of `num` is NOT transferred
+    //   - Inside the function, `x` receives value 10 but starts as IMMUTABLE
+    //   - Changes to the local `x` inside the function do NOT affect `num` here
+    //
+    // `let y`       → binds the return value (12) to a new variable
+    //                 `y` is declared WITHOUT `mut` → `y` is IMMUTABLE
+    let y = prints_number(num); // y = 12
+
+    // INTENTIONAL BUG shown here:
+    // `y = y + 3`   → attempts to REASSIGN `y`, but `y` is IMMUTABLE (declared without `mut`)
+    //                 This causes a compile-time error:
+    //                   error[E0384]: cannot assign twice to immutable variable `y`
+    //
+    // KEY LESSON: The mutability of a returned value is NOT carried over to the caller.
+    // Only the VALUE itself is returned. Mutability must be explicitly declared at each site.
+    //
+    // Fix: change the declaration above to `let mut y = prints_number(num);`
+    y = y + 3;
+}
+
+/*
+----------------------------------------------------------------------------------------------------------------------
+Concept                                 | Description
+----------------------------------------------------------------------------------------------------------------------
+Mutability is explicit in rust          | Variables and parameters are immutable by default 
+Values passed into a function           | Only values are passed and not their mutability configuration
+Changing Mutability via Shadowing       | Mutability of a parameter can be updated using shadowing 
+Returning values and mutability         | Returning a value from a function passes only the value, not its mutability
+----------------------------------------------------------------------------------------------------------------------
+*/

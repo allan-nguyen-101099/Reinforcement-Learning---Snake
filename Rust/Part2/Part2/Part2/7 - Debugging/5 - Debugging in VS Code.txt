@@ -1,0 +1,29 @@
+// -------------------------------------------
+// 	        Debugging in VS Code
+// -------------------------------------------
+
+fn main() {
+    let numbers = vec![10, 20, 30, 40, 50];
+    let target = 70;
+
+    let mut sum = 0;
+
+    // .iter().enumerate() — yields (index, &value) pairs
+    for (i, num) in numbers.iter().enumerate() {
+        sum += num; // set a breakpoint here — VS Code debugger will pause on each iteration
+                   // you can inspect `sum`, `i`, and `num` in the Variables panel
+                   // Step Over (F10) to go line by line, Step Into (F11) for function calls
+
+        if sum == target {
+            println!("Found target at index: {}", i);
+            break;  // exit the loop early
+        }
+    }
+
+    println!("Final sum: {}", sum);
+    // To debug in VS Code:
+    // 1. Install the "rust-analyzer" and "CodeLLDB" extensions
+    // 2. Click the red dot in the left gutter to set a breakpoint
+    // 3. Press F5 or Run > Start Debugging
+    // 4. Use the Debug toolbar: Continue (F5), Step Over (F10), Step Into (F11)
+}

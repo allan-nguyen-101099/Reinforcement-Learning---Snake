@@ -1,0 +1,65 @@
+// -------------------------------------------
+// 		RefCell Smart Pointer
+// -------------------------------------------
+
+use std::{cell::RefCell, rc::Rc};  // RefCell from std::cell, Rc from std::rc
+
+fn main() {
+    // Example 1: Borrowing rules enforced at RUNTIME (not compile time)
+    // Standard compile-time rules (commented out):
+    // let mut x = 50;
+    // let x1 = &x;      // immutable borrow
+    // let x2 = &x;      // second immutable borrow — OK
+    // let x3 = &mut x;  // ERROR at compile time: can't have & and &mut simultaneously
+    // println!("{} {} ", x1, x2);
+
+    let a = RefCell::new(10);  // RefCell<i32> — wraps the value, borrow rules checked at runtime
+
+    let b = a.borrow();    // .borrow() — creates a runtime immutable borrow (Ref<i32>)
+    let c = a.borrow();    // second immutable borrow — OK (multiple & allowed simultaneously)
+
+    drop(b);  // explicitly release immutable borrow b
+    drop(c);  // explicitly release immutable borrow c
+    let d = a.borrow_mut();  // .borrow_mut() — creates a runtime mutable borrow (RefMut<i32>)
+    // If b or c were still alive here, this would PANIC at runtime (not compile error)
+
+    // Example 2: Interior mutability — mutating through an immutable binding
+    let a = RefCell::new(10);   // `a` binding is immutable, but the VALUE inside can be mutated
+    let mut b = a.borrow_mut(); // get mutable access to the inner value
+    *b = 15;   // * dereferences the RefMut smart pointer to access the inner i32
+    drop(b);   // MUST drop mutable borrow before calling a.borrow() below
+    println!("{:?}", a);  // {:?} prints the RefCell and its inner value
+
+    // Example 3: Rc<RefCell<T>> — multiple owners that can all mutate the shared value
+    let a = Rc::new(RefCell::new(String::from("c++")));  // shared + mutable
+    let b = Rc::clone(&a);  // b is a second owner of the SAME RefCell
+
+    *b.borrow_mut() = String::from("rust");  // mutate through b — visible to a too
+    println!("{:?}", a);  // prints "rust" — a sees the change made through b
+}
+
+/* 
+--------------------------------------------------------------------------------------------------
+Concept / Topic           | Explanation
+--------------------------|-----------------------------------------------------------------------
+RefCell Smart Pointer     | It enforces borrowing rules at runtime instead of compile time.                       
+                          | The borrow() creates immutable runtime borrows.
+                          | borrow_mut() creates a mutable runtime borrow.
+                          | Simultaneous mutable and immutable borrows cause a panic.
+                          | RefCell borrows are tied to scope and do not use non-lexical lifetimes.
+
+Interior Mutability       | RefCell allows mutation through an immutable binding.
+                          | The outer variable can be immutable while the inner value changes.
+                          | This is known as interior mutability.
+
+Explicit Drop Behavior    | Runtime borrows remain active until they are dropped.
+                          | Calling drop() or ending a scope releases the borrow.
+                          | Mutable and immutable borrows must not overlap at runtime.
+
+Rc<RefCell<T>> Combination | Rc<T> enables multiple ownership.
+                           | RefCell<T> enables interior mutability.
+                           | Rc<RefCell<T>> allows multiple owners to mutate shared data.
+                           | Commonly used in graph structures and doubly linked lists.
+--------------------------------------------------------------------------------------------------
+
+ */

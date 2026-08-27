@@ -1,0 +1,78 @@
+// -------------------------------------------
+// 		Initializing Struct Instance
+// -------------------------------------------
+
+use rust_course::Student;
+fn main() {
+    let std_1 = Student::new("joseph".to_string()).unwrap_or_default();
+    println!("{:?}", std_1);
+
+    let std_2 = Student::default();
+    println!("{:?}", std_2);
+
+    let std_3 = Student {
+        age: 12,
+        ..Default::default()
+    };
+}
+
+
+// code in lib
+
+#[derive(Debug, Default)]  // Default — auto-generates Student::default() with zero values
+pub struct Student {
+    id: u8,        // private field — not accessible outside this module
+    pub age: u8,   // pub = accessible from outside the module
+    pub name: String,
+}
+
+impl Student {
+    // Constructor returning Result — validates input before creating instance
+    pub fn new(std_name: String) -> Result<Self, String> {
+        let x = std_name.chars();  // creates a char iterator over the name
+        // .all() — returns true if ALL chars match the predicate
+        // matches!(x, 'a'..='z') — checks if x is a lowercase ASCII letter
+        if std_name.chars().all(|x| matches!(x, 'a'..='z')) {
+            Ok(Self {      // validation passed — wrap instance in Ok
+                id: 0,
+                age: 20,
+                name: std_name,
+            })
+        } else {
+            Err("The name is invalid".to_string())  // validation failed — return Err
+        }
+    }
+}
+
+
+// impl Default for Student {
+//     fn default() -> Self {
+//         Self {
+//             id: 0,
+//             name: "unknown".to_string(),
+//             age: 20,
+//         }
+//     }
+// }
+
+
+
+
+/* 
+-----------------------------------------------------------------------------------------------------
+Concept / Topic      | Explanation
+---------------------|-------------------------------------------------------------------------------
+Constructor Function | Rust does not provide built-in constructors like many other languages.
+                     | A common Rust convention is to define an associated function called new().
+                     | It can access private fields as it belongs to the same impl block. 
+                     | We can therefore keep fields private. 
+
+Validating Inputs    | The constructor can validate inputs before creating a struct instance.
+in Constructors      | If validation succeeds, the function returns the instance inside Ok.
+                     | Otherwise, it returns an error indicating invalid input.
+
+Default Trait        | The Default trait provides a way to create instances with predefined values.
+                     | It enables the compiler to generates default values for fields.
+                     | We can set some fields manually while initializing others from default values.
+-------------------------------------------------------------------------------------------------------
+*/

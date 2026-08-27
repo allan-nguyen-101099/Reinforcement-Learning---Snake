@@ -1,0 +1,63 @@
+// -------------------------------------------
+// 	        Panic Safety
+// -------------------------------------------
+
+use std::panic;
+
+struct BadResource;
+impl Drop for BadResource {
+    fn drop(&mut self) {
+        println!("Dropping BadResource");
+
+        let result = panic::catch_unwind(|| {
+            panic!("Panic in Drop");
+        });
+
+        match result {
+            Ok(_) => println!("Closure completed successfully"),
+            Err(e) => println!("Caught a panic but resource cleaned up"),
+        }
+    }
+}
+fn main() {
+    let _br = BadResource;
+    panic!("Main function panicked!");
+    // let result = panic::catch_unwind(|| {
+    //     let x = _br;
+    //     panic!("Main function panicked!");
+    //     println!("This will not execute");
+    // });
+
+    // match result {
+    //     Ok(_) => println!("Code ran fine"),
+    //     Err(e) => println!("Caught a panic"),
+    // }
+    // println!("This will execute");
+}
+ 
+
+
+/* 
+--------------------------------------------------------------------------------------------------
+Concept/Topic             | Explanation
+--------------------------|-----------------------------------------------------------------------
+Panic and Stack Unwinding | When a panic occurs, Rust unwinds the stack, droping all owned values.
+
+Drop During Panic         | A panic stops further execution but still triggers drop.
+                   
+Double Panic              | A double panic occurs when a panic happens during stack unwinding.
+                          | Rust aborts immediately, skipping remaining cleanup.
+                          | This can lead to leaked resources and unsafe states.
+
+catch_unwind              | It allows catching panics at runtime.
+                          | It executes code inside a closure and returns a result.
+                          | Code outside the closure continues running after a panic.
+
+Isolation of Effects      | Panics inside catch_unwind are contained to the closure.
+                          | Dropping of values outside the closure is delayed until scope end.
+                          | Side effects inside the closure may still occur.
+
+Preventing Double Panic   | Panic inside Drop should be avoided whenever possible.
+                          | If unavoidable, catch_unwind can isolate the panic.                         
+--------------------------------------------------------------------------------------------------
+*/

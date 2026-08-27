@@ -1,0 +1,72 @@
+// -------------------------------------------------
+// 			- Variable Convention
+// 			- Unused variables
+// 			- Statics
+// -------------------------------------------------
+fn main() {
+    // ── Variable Naming Convention ────────────────────────────────────────────
+    // Rust uses `snake_case` for variable and function names:
+    //   - All letters are LOWERCASE
+    //   - Words are separated by UNDERSCORES `_`
+    // Example: `number_one`, `first_name`, `max_value` (NOT: NumberOne, firstName)
+
+    // ── Unused Variables ──────────────────────────────────────────────────────
+    // By default Rust WARNS you if you declare a variable but never use it.
+    // Prefixing a name with `_` (underscore) tells the compiler:
+    //   "I know this is unused; suppress the warning for this variable."
+    //
+    // `_number_one`  → the leading `_` suppresses the "unused variable" compiler warning
+    // `= 45`         → integer literal; type inferred as i32
+    let _number_one = 45;
+
+    // `_x`           → another intentionally unused variable (leading `_` suppresses warning)
+    // `40_000`       → NUMERIC LITERAL WITH UNDERSCORES for human readability
+    //                  Underscores inside numbers are IGNORED by the compiler
+    //                  `40_000` is exactly the same value as `40000`
+    //                  (Like writing "40,000" in everyday notation — just uses `_` instead of `,`)
+    let _x = 40_000;
+
+    // ── Statics ──────────────────────────────────────────────────────────────
+    // A `static` lives for the ENTIRE duration of the program.
+    // Unlike constants, statics occupy a FIXED MEMORY ADDRESS (a real location in RAM).
+    // This means you can take a reference to a static (&'static reference).
+    //
+    // `static`       → keyword: declares a static variable
+    // `WELCOME`      → name; MUST use SCREAMING_SNAKE_CASE convention
+    // `:`            → type annotation separator (REQUIRED for statics)
+    // `&str`         → type: a string slice reference
+    //                  For statics, the full lifetime type is `&'static str`
+    //                  meaning the data lives as long as the entire program
+    // `=`            → assignment
+    // `"Welcome to Rust"` → the string literal stored in static memory
+    static WELCOME: &str = "Welcome to Rust";
+
+    // A `const` is included here for comparison with `static`:
+    // `const PI: f32 = 3.14` → a compile-time constant with no fixed memory address
+    //                           The value 3.14 is INLINED (copied) wherever PI is used
+    const PI: f32 = 3.14;
+
+    // Both `a` and `b` receive the VALUE of PI (3.14).
+    // With `const`, the value is COPIED at each use site — no single shared address.
+    let a = PI; // a = 3.14 (PI is inlined/copied here)
+    let b = PI; // b = 3.14 (PI is inlined/copied again — separate copy)
+
+    // Both `y` and `z` receive a REFERENCE to the same WELCOME static.
+    // With `static`, every use points to the SAME fixed memory location.
+    // `y` and `z` are both `&str` references pointing to the identical address.
+    let y = WELCOME; // y refers to WELCOME's memory address
+    let z = WELCOME; // z refers to the SAME memory address as y
+}
+/*
+--------------------------------------------------------------------------------------------------------
+Topic                  | Summary
+-----------------------|--------------------------------------------------------------------------------
+Variable Convention    | Variables use snake_case, meaning all lowercase letters with underscores
+                       | Unused variables start with an underscore
+Numeric Readability    | Use underscores, which does not affect the value
+Statics                | Declared with static and has an explicit type annotation
+                       | Use SCREAMING_SNAKE_CASE; stored in a fixed memory location
+---------------------------------------------------------------------------------------------------------
+Statics vs Constants   | Constants are inlined with no memory address while statics occupy fixed memory
+---------------------------------------------------------------------------------------------------------
+*/

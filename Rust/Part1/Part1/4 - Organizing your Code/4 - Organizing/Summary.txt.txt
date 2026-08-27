@@ -1,0 +1,29 @@
+/*
+-------------------------------------------------------------------------------------------
+Concept / Topic         | Explanation
+-------------------------------------------------------------------------------------------
+cargo-modules           | - Visualizes Rust module hierarchy as a tree
+                        | - Helps navigate, refactor, and understand structure
+
+Module boundaries       | - Defined by `mod` keyword, not by physical files/folders.
+                        | - Multiple modules may exist inside one file.
+
+Two organization methods|
+1. Separate .rs file    | - Create file named after module, containing module contents.
+                        | - All the modules in crate module must be declared in the crate module.
+                        | - For simple modules with no submodules,
+                        |       - Place them in a separate .rs file in the src directory.
+                        | - For modules with submodules,
+                        |       - Define submodules in separate folder bearning name of parent module.
+                        |       - The parent module remains in the src directory.
+                        | - Example: src/product/category.rs for `category` submodule.
+
+2. Separate Folders     | - Create a folder for each module (folders are named before the modules).
+                        | - Each folder contains a mod.rs file.
+for Modules             | - Submodules inside parent folder use separate .rs files.
+                        | - The parent module code (in case of submodule) resides in mod.rs file.
+
+Comparison of methods   | - Method 1 keeps structure simple and readable.
+                        | - Method 2 may cause confusion due to many mod.rs files.
+-------------------------------------------------------------------------------------------
+*/

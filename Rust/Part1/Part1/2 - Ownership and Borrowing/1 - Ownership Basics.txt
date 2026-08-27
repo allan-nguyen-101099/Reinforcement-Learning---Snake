@@ -1,0 +1,43 @@
+// -------------------------------------------
+// 	Ownership Basics
+// -------------------------------------------
+
+/*
+1.	Each value has a variable that's its "owner."
+2.	A value can have only one owner at a time.
+3.	If the owner goes out of scope, the value is cleaned up.
+*/
+
+fn main() {
+    let s1 = String::from("world");
+    {
+        let s2 = s1;
+    }
+    //println!("s1 is: {s2}");
+
+    let x = 15;
+    let y = x;
+    println!("x is: {x}");
+}
+
+
+/* 
+-----------------------------------------------------------------------------------
+
+Topic                  | Key Points
+-----------------------|-----------------------------------------------------------
+Ownership Rules        | 1) Each value has an owner  
+                       | 2) A value can have only one owner at a time  
+                       | 3) When the owner goes out of scope, the value is dropped  
+Assignment & Move      | Assigning a heap allocated transfers ownership  
+                       | Old variable becomes invalid after move  
+Clone                  | It is deep copy which duplicates both stack and heap data  
+Scope & Drop           | Values dropped when owner goes out of scope  
+                       | Inner scope variables are freed once scope ends  
+Primitives             | Primitive types are stored on stack 
+                       | Their assignment does not move ownership and leads to a copy   
+Zero-Cost Safety       | Ownership rules are enforced at compile time and have no 
+                       | runtime overhead  
+-----------------------------------------------------------------------------------
+
+ */

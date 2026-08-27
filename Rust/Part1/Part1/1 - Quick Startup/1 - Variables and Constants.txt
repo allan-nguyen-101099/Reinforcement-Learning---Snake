@@ -1,0 +1,140 @@
+// -------------------------------------------------
+// 			- Variables
+// 			    - Definition
+// 			    - Mutability
+// 			    - Scope
+// 			    - Shadowing
+// 			 - Constants
+// -------------------------------------------------
+
+fn main() {
+    // ── Variables Definition ────────────────────────────────────────────────
+    // `let`       → keyword: declares (binds) a new variable
+    // `x`         → the variable name (chosen by you; any valid identifier)
+    // `:`         → separates the variable name from its explicit type annotation
+    // `i16`       → the type: a SIGNED 16-bit integer (range: -32,768 to 32,767)
+    //               Other signed int sizes: i8, i32 (default), i64, i128
+    // `=`         → assignment operator: stores the right-hand value into the variable
+    // `10`        → an integer literal: the value being stored
+    // `;`         → semicolon: REQUIRED to terminate every Rust statement
+    let x: i16 = 10;
+
+    // `println!`  → a MACRO (the `!` distinguishes macros from regular functions)
+    //               Prints text to stdout (console) followed by a newline
+    // `"`         → opens the string literal (the format string)
+    // `x is: `    → literal text printed as-is
+    // `{x}`       → a format placeholder: Rust replaces it with the VALUE of `x`
+    // `"`         → closes the string literal
+    println!("x is: {x}");
+
+    // ── Mutability ──────────────────────────────────────────────────────────
+    // In Rust, variables are IMMUTABLE by default — their value cannot change.
+    // To allow a variable to change its value, add `mut` after `let`.
+    //
+    // `let`       → declares a new variable
+    // `mut`       → keyword: marks the variable as mutable (changeable after declaration)
+    // `y`         → variable name
+    // `= 5`       → assigns initial value 5; type is inferred as i32 (default integer type)
+    let mut y = 5;
+
+    // This line CHANGES the value of `y` (only possible because `y` is `mut`).
+    // Note: there is NO `let` here — we are REASSIGNING, not declaring a new variable.
+    // `y`         → the existing mutable variable
+    // `=`         → assignment: overwrites the current value in place
+    // `10`        → the new value to store
+    y = 10;
+
+    // ── Scopes ──────────────────────────────────────────────────────────────
+    // A scope is a region of code enclosed in curly braces `{ }`.
+    // Any variable declared inside a scope is DROPPED (freed) when `}` is reached.
+    // It cannot be used from outside the scope that created it.
+    {
+        // `z` is declared ONLY inside this inner scope.
+        // When the `}` below is reached, `z` is freed from memory automatically.
+        let z = 50;
+    } // ← `z` is dropped here; it no longer exists outside this block
+
+    // This line is commented out intentionally.
+    // Using `z` here would cause a COMPILE ERROR:
+    //   error[E0425]: cannot find value `z` in this scope
+    // let s = z;
+
+    // ── Shadowing ───────────────────────────────────────────────────────────
+    // Shadowing = re-declaring a variable with the SAME name using a new `let`.
+    // The new variable "shadows" (hides) the old one in the current and inner scopes.
+    // Key differences from mutation (`mut`):
+    //   - Shadowing creates a BRAND NEW variable (different memory)
+    //   - Shadowing CAN change the type of the variable; mutation cannot
+    //
+    // `let t`     → declares a new variable `t` with value 10 (type: i32)
+    let t = 10;
+
+    // `let t`     → creates a SECOND variable also named `t` (shadows the first one)
+    // `t + 10`    → evaluates the OLD `t` (10) and adds 10 → result is 20
+    //               The old `t` is now hidden; the new `t` holds 20
+    let t = t + 10;
+    println!("t is: {t}"); // Output: t is: 20
+
+    // Shadowing can also CHANGE THE TYPE — this is NOT possible with `mut`:
+    let u = 3;     // `u` is i32 (integer)
+    let u = 3.0;   // new `u` shadows the old; new type is f64 (float) — totally valid
+
+    // Shadowing across NESTED scopes:
+    let v = 30;    // outer `v` = 30
+    {
+        // This `let v` creates a NEW variable `v` inside this inner scope.
+        // It shadows the outer `v` (30) with 40, but ONLY inside these braces.
+        // The outer `v` still exists and will reappear when this block ends.
+        let v = 40;
+        println!("inner v is: {v}"); // Output: inner v is: 40
+    }
+    // Back in the outer scope — the inner shadow is gone; original `v` (30) is visible again.
+    println!("v is: {v}"); // Output: v is: 30
+
+    // ── Constants ───────────────────────────────────────────────────────────
+    // `const`       → keyword: declares a CONSTANT (fixed value, can NEVER change)
+    //                 Evaluated at compile time; often faster than variables at runtime
+    //                 Can be declared at any scope, including outside functions
+    // `MAX_VALUE`   → constant name; MUST use SCREAMING_SNAKE_CASE convention
+    // `:`           → type annotation separator (REQUIRED for constants — no type inference)
+    // `u32`         → UNSIGNED 32-bit integer (range: 0 to 4,294,967,295; no negatives)
+    // `=`           → assignment
+    // `100`         → the literal value (must be computable at compile time)
+    // `;`           → ends the statement
+    const MAX_VALUE: u32 = 100;
+}
+
+/*
+Summary
+---------------------------------------------------------------------------------------------------------------------------
+Concept        | Summary
+---------------------------------------------------------------------------------------------------------------------------
+Variable       | Declareted with let
+               | Type is inferred
+               | Type can be manually annotated
+               | Manual type annotation overrides this inference
+
+
+Mutability     | Variables are immutable by default
+               | Use mut to allow mutation or changing of value
+
+Scope          | Code regions defined using {} braces
+               | Each variable is valid within the scope in which it resides
+
+Shadowing      | Allows creating a new variable with the same name
+               | It replaces the previous variables, in the current scope or inner scopes.
+
+Constants      | Declared using const,
+               | Require explicit type annotations,
+               | Cannot be mutated,
+               | Must be initialized
+---------------------------------------------------------------------------------------------------------------------------
+Additional Concepts
+---------------------------------------------------------------------------------------------------------------------------
+Binding                 | Using let keyword for associating a variable name with a value
+Shadowing vs Mutation   | Mutation modifies the same variable while
+                        | Shadowing creates a new variable with the same name
+                        | Taking precedence over the previous one
+---------------------------------------------------------------------------------------------------------------------------
+
+*/

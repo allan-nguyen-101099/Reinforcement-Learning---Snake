@@ -1,0 +1,108 @@
+// -------------------------------------------
+// 			Conditionals
+// 			- If else
+// 			- If else if ladder
+// 			- Match
+// -------------------------------------------
+fn main() {
+    // ── If-Else ─────────────────────────────────────────────────────────────
+    // `if` checks a BOOLEAN condition. If true, the first block runs; otherwise `else` runs.
+    // IMPORTANT: the condition MUST evaluate to a `bool` — no implicit integer conversion!
+    let num = 40;
+
+    // `if`          → keyword: starts a conditional expression
+    // `num < 50`    → the CONDITION: uses `<` (less-than) operator; evaluates to bool
+    //                 Here: 40 < 50 → `true`
+    // `{`           → opens the block that runs when the condition is TRUE
+    if num < 50 {
+        println!("The number is lesser than 50"); // runs because 40 < 50 is true
+    // `}`           → closes the if-block
+    // `else`        → keyword: introduces the block that runs when the condition is FALSE
+    // `{`           → opens the else-block
+    } else {
+        println!("The number is greater than or equal to 50"); // would run if num >= 50
+    } // `}` closes the else-block
+
+    // ── If-Else-If Ladder (used as an expression) ───────────────────────────
+    // Rust's `if-else` is an EXPRESSION — it can PRODUCE a value.
+    // When used this way, every branch must return the SAME type.
+    let marks = 95;
+    // The `let mut grade = 'N'` pattern below is the old imperative style.
+    // The `if` expression is the idiomatic Rust way (no mutation needed).
+    // let mut grade = 'N';
+
+    // `let grade`   → binds `grade` to the value that the entire if-expression produces
+    // `= if`        → the if-expression starts here and will produce a `char` value
+    let grade = if marks >= 90 {
+        // `marks >= 90`  → condition: 95 >= 90 → true; this branch executes
+        // `'A'`          → a char literal (NO semicolon!) → this is the branch's VALUE
+        //                  If this branch runs, the whole if-expression evaluates to 'A'
+        'A'
+    } else if marks >= 80 {
+        // Only reached if the FIRST condition was false
+        'B'
+    } else if marks >= 70 {
+        'C'
+    } else {
+        // DEFAULT branch: runs if ALL conditions above are false
+        'F'
+    }; // ← semicolon here ends the `let grade = ...;` STATEMENT
+
+    // ── Match ─────────────────────────────────────────────────────────────
+    // `match` compares a value against a list of PATTERNS and runs the matching arm.
+    // It is EXHAUSTIVE: every possible value must be handled (or use `_` as a catch-all).
+    // Like `if`, `match` can be used as an EXPRESSION that produces a value.
+
+    let marks = 95; // shadows the previous `marks`
+    //let mut grade = 'N';
+
+    // `let grade`       → binds `grade` to the value the match expression produces
+    // `= match marks`   → `match` keyword + the VALUE being inspected (`marks`)
+    // `{`               → opens the match body (a list of arms)
+    let grade = match marks {
+        // Each line is a MATCH ARM:  pattern => result_expression,
+        //
+        // `90..=100`    → INCLUSIVE RANGE PATTERN: matches any value from 90 to 100
+        //                 `..=` is the inclusive range operator (includes both 90 and 100)
+        // `=>`          → FAT ARROW: separates the pattern from the result expression
+        // `'A'`         → the char value this arm evaluates to if the pattern matches
+        // `,`           → separates match arms from each other
+        90..=100 => 'A',
+
+        // `80..=89`     → matches values 80, 81, ... 89 (inclusive on both ends)
+        80..=89 => 'B',
+
+        // `70..=79`     → matches values 70 through 79
+        70..=79 => 'C',
+
+        // `_`           → WILDCARD PATTERN: matches ANYTHING not caught by the arms above
+        //                 Required to make the match EXHAUSTIVE (cover every possible value)
+        //                 Similar to `default:` in other languages
+        _ => 'N',
+    }; // ← semicolon ends the `let grade = ...;` statement
+}
+
+/*
+Summary
+------------------------------------------------------------------------------------------------------------------
+Conditional                         | Description
+------------------------------------------------------------------------------------------------------------------
+If-Else                             | Checks a condition, runs the first code block if true, else runs the second
+                                    | else is optional, condition must be Boolean
+
+If-Else-If Ladder                   | Checks multiple conditions in sequence,
+                                    | The first true condition's block executes,
+                                    | Final else is default and optional
+                                    | Not necessarily exhaustive,
+                                    | Can be written as an expression
+
+
+Match                               | Compares a value against patterns,
+                                    | Runs the block for the first matching pattern
+                                    | It is exhaustive,
+                                    | Can be treated as expression,
+
+
+Common Match Mistakes               | Unreachable patterns and overlapping patterns
+------------------------------------------------------------------------------------------------------------------
+*/

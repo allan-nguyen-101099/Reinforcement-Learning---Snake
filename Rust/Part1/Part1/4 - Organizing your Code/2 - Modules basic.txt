@@ -1,0 +1,94 @@
+mod product {
+    use category::Category;
+    pub struct Product {
+        id: u64,
+        name: String,
+        price: f64,
+        category: Category,
+    }
+
+    mod category {
+        pub enum Category {
+            Electronics,
+            Clothing,
+            Books,
+        }
+    }
+
+    impl Product {
+        fn calculate_tax(&self) -> f64 {
+            self.price * 0.1
+        }
+
+        pub fn product_price(&self) -> f64 {
+            self.price - self.calculate_tax()
+        }
+    }
+}
+
+mod customer {
+    pub struct Customer {
+        id: u64,
+        name: String,
+        email: String,
+    }
+}
+
+mod order {
+    use crate::customer::Customer;
+    use crate::product::Product;
+    struct Order {
+        id: u64,
+        product: Product,
+        customer: Customer,
+        quantity: u32,
+    }
+
+    impl Order {
+        fn calculate_discount(&self) -> f64 {
+            if self.quantity > 5 { 0.1 } else { 0.0 }
+        }
+
+        fn total_bill(&self) -> f64 {
+            let discount = self.calculate_discount();
+            let total_before_discount = self.product.product_price() * self.quantity as f64;
+            total_before_discount - (total_before_discount * discount)
+        }
+    }
+}
+
+/* Accessing an item not in the current module (scope)
+    -> Specify its full path in the module hierarchy (also called fully qualified names)
+       This can either
+       1. Relative path (if its residing within the same module)
+       2. Absolute path (if its residing outside the module)
+*/
+
+/*
+--------------------------------------------------------------------------------------------------------------
+Concept / Topic       | Details
+--------------------------------------------------------------------------------------------------------------
+Purpose of Modules    | - Organize related code into logical units.
+                      | - Manage visibility, abstraction, and code structure using modules and submodules.
+                      | - Use absolute or relative paths for accessing items across modules
+
+Scope and Visibility  | - Items must be in scope to be recognized by the compiler.
+                      | - Scope means any code enclosed in {}.
+                      | - Use pub keyword to make structs, enums, and functions visible outside their module.
+                      | - Making a module public does not make its contents automatically public.
+
+Paths in Modules      | - Paths are used to specify the location of an item in a module hierarchy.
+                      | - Paths are also sometimes referred to as fully qualified names.
+                      | - Paths can be absolute or relative.
+                      | - Absolute paths starts with crate:: for items outside the module but in the same crate.
+                      | - Relative paths for items within the same module or submodule.
+
+
+Visibility in submodule| - Child modules (sub modules) can access parent (upper level module) contents.
+                      | - Parent module however can not access child contents unless made public.
+
+The `use` Declaration | - Simplifies long paths by bringing items into local scope.
+                      | - Often described as “bringing items into scope” rather than “importing”.
+                      | - Makes code concise and easier to read, especially in large module trees.
+--------------------------------------------------------------------------------------------------------------
+ */

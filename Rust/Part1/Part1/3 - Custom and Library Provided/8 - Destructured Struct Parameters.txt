@@ -1,0 +1,99 @@
+// --------------------------------------------
+// 	   Destructured Struct Parameters
+// --------------------------------------------
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+// ── Destructuring a Struct in a Function Parameter ───────────────────────────
+// Instead of receiving the whole struct and then accessing fields,
+// you can UNPACK the struct's fields DIRECTLY in the parameter pattern.
+//
+// `Point { x, y }` → STRUCT DESTRUCTURE PATTERN
+//   `Point`         → the struct TYPE being matched (must match the argument's type)
+//   `{ x, y }`      → field shorthand: binds `x` to the `x` field, `y` to the `y` field
+//                     equivalent to `{ x: x, y: y }`
+// `: Point`         → the TYPE annotation of the parameter (required)
+//
+// When `print_coord(p)` is called with `Point { x: 5, y: 6 }`:
+//   `x` inside the function = 5
+//   `y` inside the function = 6
+//   The original `p` is MOVED into the function (ownership transfer)
+//
+// NOTE: unlike `if let x = 5` patterns, you CANNOT match concrete values
+//       in function parameters (e.g. `Point { x: 0, y }` is NOT valid here)
+fn print_coord(Point { x, y }: Point) {
+    // Value: p or Point {x: 5, y: 6}
+    // Pattern: Point {x, y}
+    // `x` and `y` are already unwrapped — use directly
+    println!("x: {}, y: {}", x, y); // Output: x: 5, y: 6
+}
+
+fn main() {
+    // ── Match on a Struct ─────────────────────────────────────────────────────
+    // You can pattern match struct fields with CONCRETE VALUES to filter specific cases.
+    // Fields with concrete values → COMPARED (must equal that value)
+    // Fields with variable names  → BOUND (get a copy of that field's value)
+    let p = Point { x: 0, y: 7 };
+
+    match p {
+        // ARM 1: `Point { x: 0, y }`
+        //   `x: 0` → CONCRETE VALUE pattern: only matches if p.x == 0 exactly
+        //   `y`    → VARIABLE pattern: binds to whatever p.y is (here 7)
+        //   p.x = 0 ✅ matches → `y` is bound to 7 → this arm runs
+        Point { x: 0, y } => println!("Point y-axis value: {}", y), // prints: 7
+
+        // ARM 2: `Point { x, y: 0 }`
+        //   `x`    → variable pattern: binds to p.x
+        //   `y: 0` → concrete value: only matches if p.y == 0
+        //   Not reached here because arm 1 already matched
+        Point { x, y: 0 } => println!("Point x-axis value: {}", x),
+
+        // ARM 3: `Point { x, y }` — CATCH-ALL
+        //   Both fields are variable patterns → matches ANY Point
+        //   Only reached if neither x==0 nor y==0
+        Point { x, y } => println!("Point at ({}, {})", x, y),
+    }
+
+    // ── Irrefutable Pattern Reminder ──────────────────────────────────────────
+    // `if let x = 5` → x is a VARIABLE pattern (always matches any value)
+    // This is irrefutable — always runs, equivalent to `{ let x = 5; }`
+    // Compiler warns: "irrefutable pattern in `if let`"
+    let x = 5;
+    if let x = 5 {}
+    // Value: 5
+    // Pattern: x (variable — always matches)
+
+    // ── Calling the destructured function ─────────────────────────────────────
+    // `p` is created and then MOVED into `print_coord`
+    // Inside `print_coord`, it is immediately destructured into x=5, y=6
+    // Value: p or Point {x: 5, y: 6}
+    // Pattern: Point {x: 0, y}  (from match arm example above)
+    let p = Point { x: 5, y: 6 };
+    print_coord(p); // p is moved here; x=5, y=6 printed
+}
+
+
+
+/*
+--------------------------------------------------------------------------------------------------------------
+Concept / Topic                 | Explanation / Details
+------------------------------- | ----------------------------------------------------------------------------
+Pattern Matching in Structs     | - Allows destructuring of structured fields.
+                                | - Helps in accessing only requirement specific fields.
+
+Matching on Structs Field       | - Each arm defines a pattern that specifies which field values to match.
+                                | - Fields with concrete values are compared/matched,
+                                | - While fields with variables are binded.
+                                | - Only the binded variables are accessible within the corresponding arm’s.
+
+Matching in Function Parameters | - Function parameters can destructure struct fields directly.
+                                | - Variables are in the fucntion parameters are binded to struct fields.
+                                | - Concrete values cannot be used in function parameters.
+
+Variable Patterns vs Values     | - A variable in the place of a pattern always matches.
+                                | - Rust treats variable patterns as bindings, not comparisons.
+                                | - Concrete value matching is allowed in match, but not in function parameters.
+--------------------------------------------------------------------------------------------------------------
+*/

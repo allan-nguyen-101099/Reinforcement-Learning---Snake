@@ -1,0 +1,37 @@
+// -------------------------------------------
+// 	        rustfmt
+// -------------------------------------------
+
+// rustfmt automatically formats Rust code to a consistent style
+// Configure via a `rustfmt.toml` file in the project root
+// Run with: `rustfmt src/main.rs`  or  `cargo fmt`
+
+struct Foo {
+    x: u32,
+    y: u32,
+    z: u32,
+}
+
+fn main() {
+    let x = 1;
+    let y = 2;
+    let z = 3;
+    // Old style (verbose — field name: field name):
+    // let a = Foo { x: x, y: y, z: z };
+
+    // Field init shorthand (use_field_init_shorthand = true in rustfmt.toml):
+    // When variable name matches field name, Rust allows shorthand `x` instead of `x: x`
+    let a = Foo { x, y, z };  // rustfmt enforces this style when use_field_init_shorthand = true
+}
+
+// Example rustfmt.toml settings:
+// max_width = 100               — max line length before wrapping
+// reorder_imports = true        — sort `use` declarations alphabetically
+// comment_width = 100           — max width for comment lines
+// use_field_init_shorthand = true — prefer `x` over `x: x` in struct init
+// ctrl+, in VS Code to access settings
+
+// Full rustfmt option reference:
+// https://rust-lang.github.io/rustfmt/?version=v1.8.0&search=import
+
+

@@ -1,0 +1,210 @@
+/*
+===========================================================================================================================
+                          SUMMARY: FOLDER 4 — ORGANIZING YOUR CODE
+===========================================================================================================================
+
+---------------------------------------------------------------------------------------------------------------------------
+TOPIC 1: Code Organization Overview
+---------------------------------------------------------------------------------------------------------------------------
+
+Concept / Topic         | Explanation / Details
+------------------------|--------------------------------------------------------------------------------------------------
+Packages                | - Highest level of organization. Created with `cargo new`.
+                        | - Each package has a Cargo.toml managing metadata, dependencies, build settings.
+                        | - A package can have multiple binary crates but only ONE library crate.
+
+Crates                  | - A compilation unit. Two kinds:
+                        |     Binary crate  → produces an executable. Entry point: main.rs
+                        |     Library crate → produces a reusable library. Entry point: lib.rs
+                        | - Cargo treats main.rs and lib.rs as crate roots by convention.
+                        | - Multiple binary crates can exist inside a `src/bin/` folder.
+
+Modules                 | - Group related items (functions, structs, enums) at a finer level.
+                        | - Define scope and privacy of code components.
+                        | - Can be nested hierarchically to form a module tree.
+
+---------------------------------------------------------------------------------------------------------------------------
+TOPIC 2: Modules — Basics
+---------------------------------------------------------------------------------------------------------------------------
+
+Concept / Topic         | Explanation
+------------------------|--------------------------------------------------------------------------------------------------
+Purpose of Modules      | - Organize related code into logical units.
+                        | - Manage visibility, abstraction, and code structure.
+                        | - Use absolute or relative paths for accessing items across modules.
+
+Scope and Visibility    | - Items must be in scope to be recognized by the compiler.
+                        | - Scope = any code enclosed in {}.
+                        | - Use `pub` to make structs, enums, and functions visible outside their module.
+                        | - Making a module `pub` does NOT automatically make its contents public.
+
+Paths in Modules        | - Paths specify the location of an item in the module hierarchy.
+                        | - Also called "fully qualified names".
+                        | - Absolute path: starts with `crate::` for items in the same crate.
+                        | - Relative path: for items within the same module or submodule.
+
+Visibility in Submodules| - Child modules CAN access parent module contents.
+                        | - Parent modules CANNOT access child contents unless the child makes them `pub`.
+
+The `use` Declaration   | - Simplifies long paths by bringing items into local scope.
+                        | - Does not "import" like other languages — it just shortens the path reference.
+                        | - Makes code concise, especially in large module trees.
+
+Example:
+
+    mod product {
+        pub struct Product { ... }
+
+        mod category {
+            pub enum Category { Electronics, Clothing, Books }
+        }
+    }
+
+    mod order {
+        use crate::product::Product;    // absolute path — brings Product into scope
+        struct Order { product: Product, ... }
+    }
+
+---------------------------------------------------------------------------------------------------------------------------
+TOPIC 3: Visibility Specifiers
+---------------------------------------------------------------------------------------------------------------------------
+
+Specifier   | Scope of Access
+------------|--------------------------------------------------------------------------------------------------
+pub         | Fully public — accessible everywhere, including external crates.
+pub(crate)  | Accessible anywhere within the same crate, but NOT outside it.
+pub(self)   | Only accessible within the same module where it is defined. (same as no pub / default private)
+pub(super)  | Accessible only in the parent module (one level up).
+
+Example usage:
+
+    pub(crate) struct Product { ... }    // visible inside this crate only
+    pub(super) enum Category { ... }    // visible to parent module only
+    pub(self)  fn calculate_discount()  // private to this module (same as omitting pub)
+
+---------------------------------------------------------------------------------------------------------------------------
+TOPIC 4: Re-exporting and Privacy in Modules
+---------------------------------------------------------------------------------------------------------------------------
+
+Concept / Topic             | Explanation
+----------------------------|----------------------------------------------------------------------------------------------
+Re-exporting (pub use)      | - Exposes selected items from inner modules without exposing the whole module.
+                            | - External code treats re-exported items as if defined in the top-level module.
+                            | - Simplifies paths for users of the library.
+
+Example:
+    // Inside lib.rs
+    pub use product::Product;       // users can now write `my_crate::Product` directly
+    pub use product::Category;
+
+Privacy and Re-exporting    | - `pub use` cannot break privacy. You can only re-export items that are already public.
+                            | - Private items cannot be re-exported.
+
+Struct Privacy              | - Making a struct `pub` does NOT make its fields `pub`.
+                            | - Private fields prevent direct construction from outside the module.
+                            | - External code must use provided constructors (e.g. `new()` functions).
+
+Constructor Pattern (new)   | - Common pattern for structs with private fields.
+                            | - `new()` is inside the same module → has access to private fields.
+                            | - Provides controlled initialization and protects sensitive fields.
+
+Enum Privacy                | - Making an enum `pub` automatically makes ALL its variants `pub`.
+                            | - Enum variants do NOT have individual privacy settings.
+
+---------------------------------------------------------------------------------------------------------------------------
+TOPIC 5: File Organization Methods (Splitting Modules into Files)
+---------------------------------------------------------------------------------------------------------------------------
+
+cargo-modules tool          | - Visualizes Rust module hierarchy as a tree.
+                            | - Helps navigate, refactor, and understand project structure.
+
+Module boundaries           | - Defined by the `mod` keyword, not by physical files or folders.
+                            | - Multiple modules can exist inside one single file.
+
+TWO ORGANIZATION METHODS:
+
+Method 1 — Separate .rs Files (Recommended)
+    - Create a file named after the module (e.g., product.rs).
+    - All modules must be declared in the crate root (main.rs or lib.rs) using `mod product;`.
+    - For modules WITH submodules:
+        - The submodule lives in a subfolder named after the parent: src/product/category.rs
+        - The parent module file (product.rs) stays in src/.
+    - Example structure:
+        src/
+            main.rs           ← declares `mod product;` and `mod order;`
+            product.rs        ← Product struct and impl
+            product/
+                category.rs   ← Category enum (submodule of product)
+            order.rs
+            customer.rs
+
+Method 2 — Separate Folders with mod.rs
+    - Create a folder for each module (folder name = module name).
+    - Each folder contains a mod.rs file that holds the module code.
+    - Submodules inside the parent folder use separate .rs files.
+    - Example structure:
+        src/
+            main.rs
+            product/
+                mod.rs        ← Product struct and impl
+                category.rs   ← Category enum (submodule)
+            order/
+                mod.rs
+            customer/
+                mod.rs
+
+Comparison:
+    Method 1 | Simpler and more readable. Recommended for most projects.
+    Method 2 | Can cause confusion because many files are named mod.rs.
+
+---------------------------------------------------------------------------------------------------------------------------
+TOPIC 6: Using External Dependencies
+---------------------------------------------------------------------------------------------------------------------------
+
+Concept / Topic         | Explanation
+------------------------|--------------------------------------------------------------------------------------------------
+External Dependencies   | - External crates offer ready-made solutions for common tasks.
+                        | - crates.io is Rust's public package registry.
+                        | - Each crate page provides documentation and popularity indicators.
+
+Adding Dependencies     | - Add an entry under [dependencies] in Cargo.toml:
+                        |     array_tool = "1.0"
+                        | - Cargo automatically fetches and compiles the crate.
+                        | - Bring items into scope using `use`:
+                        |     use array_tool::vec::*;
+
+Benefits                | - Improves reusability — use well-tested solutions instead of writing from scratch.
+                        | - Lets developers focus on core project logic.
+                        | - Community-standard crates improve readability and consistency.
+
+Choosing Dependencies   | - Select crates that are actively maintained and well documented.
+                        | - Avoid excessive dependencies — each crate increases binary size.
+                        | - Prefer crates whose internal behavior you can understand if needed.
+
+---------------------------------------------------------------------------------------------------------------------------
+TOPIC 7: Documentation and Publishing your Crate
+---------------------------------------------------------------------------------------------------------------------------
+
+Concept / Topic         | Explanation
+------------------------|--------------------------------------------------------------------------------------------------
+Doc Comments            | - `///` — document the item directly below it (functions, structs, enums, etc.)
+                        | - `//!` — document the module or crate itself (placed at the top of lib.rs).
+                        | - Code blocks inside `///` comments using ``` are run as doc tests with `cargo test`.
+
+Generating Docs         | - `cargo doc --open` generates and opens HTML documentation locally.
+                        | - Public items appear in docs; private items are hidden.
+
+Preparing to Publish    | - Cargo.toml must include: description, license, homepage, repository fields.
+                        | - The crate name must be unique on crates.io.
+                        | - All working directory changes must be committed (or use `--allow-dirty`).
+                        | - Requires login to crates.io via GitHub and an API token.
+
+Publishing              | - `cargo publish` uploads the crate to crates.io.
+                        | - Published versions CANNOT be deleted.
+                        | - A version can be "yanked" to prevent new projects from depending on it.
+                        | - To release a new version: update the version field in Cargo.toml, then publish again.
+
+Security                | - Keep API tokens secret. Revoke immediately if leaked.
+
+===========================================================================================================================
+*/

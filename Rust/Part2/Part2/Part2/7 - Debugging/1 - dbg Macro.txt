@@ -1,0 +1,46 @@
+// -------------------------------------------
+// 	        dbg! macro
+// -------------------------------------------
+
+// Error: Symptoms
+// Debugging: Finding root cause and make corrections
+
+// dbg!() prints
+// 1. File name
+// 2. Line number
+// 3. The expression as written
+// 4. The evaluated value
+
+fn main() {
+    let scores = vec![72, 85, 90, 67, 95, 88];
+    let mut max_score = 0;
+    for score in scores {
+        dbg!(score);  // prints: [src/main.rs:LINE] score = 72 (file, line, expr name, value)
+                      // dbg! is an EXPRESSION — it returns the value it was given
+                      // change to `score * 3` to see expressions evaluated and printed too
+        if score > max_score {
+            max_score = score;  // dbg!(max_score = score) would print the assignment too
+                                // dbg! returns () for statements, the value for expressions
+        }
+    }
+
+    // Example 2: dbg! returns the value, so it can be used inside expressions
+    let x = 5;           // change to String::from("5") to see that dbg! takes OWNERSHIP
+    let y = dbg!(x + 4); // dbg! evaluates x+4, prints it, and RETURNS the value 9
+    //                      change to dbg!(x) — dbg! moves x into itself (takes ownership)
+    //                      change to dbg!(&x) — pass a reference so x remains usable
+
+    println!("{y}");  // y = 9 (the value returned by dbg!)
+}
+
+/*
+-------------------------------------------------------------------
+dbg!
+-------------------------------------------------------------------
+- Print debug info with context, File\:line, expression = value
+- Returns the value of the expression (unchanged)
+- Takes ownership unless reference is passed
+- Supports multiple expressions
+-------------------------------------------------------------------
+
+*/

@@ -1,0 +1,69 @@
+// -----------------------------------------------
+// 	        Logging with the log and env_logger
+// -----------------------------------------------
+
+use env_logger::Builder;  // Builder — lets us configure the logger programmatically
+use log::{LevelFilter, debug, error, info, warn};  // log macros — like println! but with levels
+
+use crate::security::check_access;  // crate:: — absolute path from crate root
+
+// Logging levels (highest to lowest severity):
+// error! — critical failures that need immediate attention
+// warn!  — something unexpected happened but program continues
+// info!  — normal events worth recording (logins, completions)
+// debug! — developer-facing details for diagnosing issues
+// trace! — very fine-grained (loop iterations, low-level checks)
+
+fn login(username: &str, password: &str) {
+    debug!("Trying to authenticate user: {}", username);  // only visible at Debug level or below
+
+    if username.is_empty() || password.is_empty() {
+        error!("Empty username or password");  // highest priority — always shown
+        return;  // early return — stop processing
+    }
+
+    if username == "admin" && password == "secret" {
+        info!("Admin login successful");  // normal event
+    } else {
+        warn!("Login failed for user: {}", username);  // unexpected but not critical
+    }
+}
+
+mod security {
+    use log::{debug, info, trace};  // use specific log macros in this module
+
+    pub fn check_access(user: &str) {
+        debug!("Checking access rights for: {}", user);
+        trace!("Performing low-level permission check for: {}", user);  // most granular
+
+        if user == "admin" {
+            info!("Access granted to admin.");
+        } else {
+            info!("Limited access for user: {}", user);
+        }
+    }
+}
+
+fn main() {
+    // Configure logger: set different log levels per module
+    Builder::new()
+        .filter_module("rust_course", LevelFilter::Debug)           // rust_course module: Debug and above
+        .filter_module("rust_course::security", LevelFilter::Trace)  // security submodule: Trace and above
+        .init();  // install this configuration as the global logger
+
+    login("guest", "");          // triggers error! (empty password)
+    security::check_access("admin");  // triggers debug! and trace! and info!
+}
+
+/*
+-------------------------------------------------------------------
+Level | Priority | Use Case Example
+-------------------------------------------------------------------
+Error | 5        | Critical failures
+Warn  | 4        | Recoverable issues or unexpected behavior
+Info  | 3        | Normal runtime events
+Debug | 2        | Developer-level debugging
+Trace | 1        | Extremely detailed, fine-grained diagnostics
+-------------------------------------------------------------------
+*/
+s

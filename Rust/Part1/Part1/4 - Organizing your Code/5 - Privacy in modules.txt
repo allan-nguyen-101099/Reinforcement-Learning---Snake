@@ -1,0 +1,37 @@
+// -------------------------------------------
+// 			Exporting and Privacy in Modules
+// -------------------------------------------
+use my_package::{Category, Customer, Order, Product};
+
+fn main() {
+    let product = Product::new(1, String::from("Laptop"), 799.99, Category::Electronics);
+    let customer = Customer::new(1, String::from("Alice"), String::from("alice@example.com"));
+    let order = Order::new(1, product, customer, 2);
+    println!("Total cost of the order: ${}", order.total_bill());
+}
+
+/*
+----------------------------------------------------------------------------------------------------------------------------
+Topic / Concept              | Explanation
+--------------------------------------------------------------------------------------------------------------------------
+Re-exporting (pub use)     |- Allows exposing selected items from inner modules without exposing the entire module.
+                           |- External code treats re-exported items as if they were defined in the top-level module.
+                           |- It simplify paths.
+                           |- Useful for building clean public interfaces while keeping internal structure hidden.
+
+Privacy and Re-exporting   |- pub use do not break privacy boundaries.
+                           |- It can re-export something only, if it is already publicly accessible.
+                           |- Items not visible to the crate root cannot be re-exported directly from the root.
+
+Struct Privacy             |- Making a struct public does not make its fields public.
+                           |- Private fields prevent direct construction of a struct instance from outside the module.
+                           |- External code must use provided constructors or methods for creating a struct instance.
+
+Constructor Pattern (new)  |- A common pattern to create struct instances with private fields.
+                           |- The new function is placed inside the same module, so it has access to private fields.
+                           |- Provides controlled initialization and protects sensitive fields (e.g., id).
+
+Enum Privacy               |- Making an enum public automatically makes all its variants public.
+                           |- Enum variants do not have individual privacy settings.
+----------------------------------------------------------------------------------------------------------------------------
+ */

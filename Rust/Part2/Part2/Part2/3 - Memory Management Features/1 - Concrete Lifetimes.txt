@@ -1,0 +1,62 @@
+// -------------------------------------------
+//         - Concrete Lifetimes
+// -------------------------------------------
+
+fn main() {
+    // Example 1: Copy type — i32 implements Copy, so j = i copies the value, both remain valid
+    let i = 5;
+    let j = i;   // i is COPIED (i32 is a Copy type) — both i and j exist independently
+    println!("{i}");  // i still usable
+
+    // Example 2: Non-Copy type (String) — str_1 is MOVED into str_2, str_1 is no longer valid
+    let str_1 = String::from("abc");
+    let str_2 = str_1;  // str_1 MOVED to str_2 — str_1's concrete lifetime ends here
+    //println!("str_1: {str_1}");  // ERROR: str_1 was moved
+
+    // Example 3: Moving into a function — str_1 is moved into str_fn, its lifetime ends at the call
+    let str_1 = String::from("abc");
+    str_fn(str_1);  // str_1 moved into function — str_1's binding ends here
+    //let str_2 = str_1;  // ERROR: str_1 already moved
+
+    // Example 4: Dangling reference attempt — this is PREVENTED by the borrow checker
+    let i;
+    {
+        let j = 5;
+        i = &j;          // borrow j — valid INSIDE this scope
+        println!("i: {i}");  // OK: j still alive here
+    }  // j is DROPPED here — i would dangle if used after this
+       // Rust borrow checker ensures i is NOT used after j's scope ends
+
+    // Example 5: Non-Lexical Lifetimes (NLL) — borrows end at LAST USE, not at scope end
+    let mut vec_1 = vec![6, 5, 8, 9];
+    let ref_1 = &vec_1;             // immutable borrow starts
+    println!("ref 1: {:?}", ref_1); // ref_1's LAST USE — its lifetime ends HERE (NLL)
+    let ref_2 = &mut vec_1;         // mutable borrow starts — OK because ref_1 is no longer alive
+    ref_2.push(3);                  // mutate through mutable reference
+    println!("ref 2: {:?}", ref_2);
+}
+
+fn str_fn(s: String) {  // s receives ownership of the moved String
+    println!("s: {s}");  // s is used here
+}  // s is dropped here — memory freed
+
+/*
+----------------------------------------------------------------------------------------------------------
+Concept / Topic       | Explanation
+----------------------|-----------------------------------------------------------------------------------
+Lifetimes             | They can classified as concrete and generic lifetimes.
+
+Concrete Lifetime     | It is the duration for which a value exists in memory.
+                      | It starts when a value is created and ends when it is dropped or moved.
+                      | Ownership transfer end a value’s lifetime in a given binding.
+                      | When a value is passed by ownership, the lifetime of binding ends at function call.
+
+Dangling References   | A dangling reference points to a value that has already been dropped.
+                      | Rust prevents this by ensuring references do not outlive their data.
+                      | The borrow checker enforces that borrowed values live long enough.
+
+Non-Lexical Lifetimes | They are determined by actual usage rather than scope.
+                      | A reference’s lifetime ends at its last use.
+                      | If &mut and & lifetimes do not overlap, borrowing rules are satisfied.
+------------------------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,43 @@
+// -------------------------------------------
+// 			Lifetimes in Structs
+// -------------------------------------------
+
+// Lifetime elision rules recap:
+// 1. Each reference parameter gets its own lifetime parameter.
+// 2. If exactly one input lifetime, it is assigned to all outputs.
+// 3. If one input is &self or &mut self, self's lifetime goes to all outputs.
+
+// 'a is a lifetime parameter — ArrayProcessor cannot outlive the slice it references
+struct ArrayProcessor<'a> {
+    data: &'a [i32],  // reference to a slice — must live at least as long as the struct
+}
+impl<'a> ArrayProcessor<'a> {  // 'a declared on impl block — same lifetime as in the struct
+    // 'b is a NEW separate lifetime for the &mut self borrow (the borrow of the struct itself)
+    // Return type is &'b [i32] — the returned slice lives as long as the &mut self borrow
+    // NOT as long as 'a, because we return previous_data which was stored in self.data
+    fn update_data<'b>(&'b mut self, new_data: &'a [i32]) -> &'b [i32] {
+        let previous_data = self.data;   // save old data (this is a &'a [i32] — a slice reference)
+        self.data = new_data;            // update self.data to point to new_data
+        previous_data  // return the old data — but its lifetime is 'b (method borrow), not 'a
+    }
+}
+fn main() {
+    let mut some_data = ArrayProcessor { data: &[4, 5, 6] };
+
+    let previous_data = some_data.update_data(&[5, 8, 10]);
+    println!("Previous data: {:?}", previous_data);
+    println!("New data: {:?}", some_data.data);
+}
+
+/*
+-------------------------------------------------------------------------------------------------------------
+Concept / Topic                 | Explanation
+--------------------------------|-----------------------------------------------------------------------------------
+Lifetimes in Structs            | Structs that store references must declare lifetime parameters.
+                                | This ensures the struct does not outlive the referenced data.
+                                | The lifetime parameter becomes part of the struct’s type.
+
+Impl Block constraits           | The impl block for structs must include the generic lifetime used by structs.
+                                | This ties all method behavior to the struct’s stored reference lifetime.
+-------------------------------------------------------------------------------------------------------------
+*/

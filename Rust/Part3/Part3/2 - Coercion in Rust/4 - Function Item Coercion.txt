@@ -1,0 +1,58 @@
+// -------------------------------------------
+// 	      Coercion
+// -------------------------------------------
+
+// Function Item Coercion
+
+fn some_fn(x: i32) {
+    println!("{x}");
+}
+
+fn email_notification(user: &str) {
+    println!("Sending email to {user}...");
+}
+
+fn sms_notification(user: &str) {
+    println!("Sending SMS to {user}...");
+}
+
+fn notify_user(method: fn(&str), s: &str) {
+    method(s);
+}
+fn main() {
+    let f = some_fn;
+    let notification_method = email_notification;
+    notify_user(notification_method, "Alice"); // email_notification -> fn(&str)
+    notify_user(sms_notification, "Alice"); // sms_notification -> fn(&str)
+}
+
+/*
+-------------------------------------------------------------------------------------------------------------
+Concept / Topic                 | Explanation
+--------------------------------|-----------------------------------------------------------------------------------
+Function Item Type              | Every function in Rust has a unique function item type.
+                                | This type encodes the exact identity of the function.
+
+Function Pointer Type           | A function pointer type represents any function with a matching signature.
+                                | It is written using the fn(...) syntax.
+                                | Multiple functions can share the same function pointer type.
+
+Function Item Coercion          | Function item coercion converts a function item into a function pointer.
+                                | This enables a passing a function as parameter to another function.
+                                | The conversion is implicit and performed by the compiler.
+-------------------------------------------------------------------------------------------------------------
+*/
+
+/*
+-------------------------------------------------------------------------------------------------------------
+Function Item Type                       | Function Pointer
+-------------------------------------------------------------------------------------------------------------
+The concrete type of a specific function | A pointer to any function with a matching signature.
+
+Unique per function                      | Common type
+
+Used where exact function is known       | Used for dynamic behavior such as passing as arguments
+
+Can coerce to a function pointer         | Cannot coerce
+-------------------------------------------------------------------------------------------------------------
+*/

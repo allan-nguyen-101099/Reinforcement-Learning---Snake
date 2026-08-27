@@ -1,0 +1,74 @@
+// -------------------------------------------
+// 			Function Pointers
+// -------------------------------------------
+struct User {
+    name: String,
+    age: u8,
+    salary: u32,
+}
+
+// Function pointers use `fn(...)` type syntax — NOT generics with Fn/FnMut/FnOnce
+// They point directly to named functions — closures that capture nothing can also be passed here
+fn is_valid_user(
+    name: &str,
+    banned_user_name: &str,
+    age: u8,
+    simple_validator: fn(&str, &str) -> bool,  // fn(arg1, arg2) -> ReturnType — concrete function pointer type
+    advance_validator: fn(u8) -> bool,          // another function pointer — no generics needed
+) -> bool {
+    simple_validator(name, banned_user_name) && advance_validator(age)  // call via pointer
+}
+
+// Named function matching the fn(&str, &str) -> bool signature
+fn validate_user_simple(name: &str, banned_user_name: &str) -> bool {
+    name.len() != 0 && name != banned_user_name
+}
+
+// Named function matching the fn(u8) -> bool signature
+fn validate_user_advance(age: u8) -> bool {
+    age >= 30
+}
+fn main() {
+    let person_1 = User {
+        name: String::from("someone"),
+        age: 35,
+        salary: 40_000,
+    };
+    let banned_user = "banned user";  // &str literal — no heap allocation
+
+    // Passing function NAMES directly as arguments — these are function pointers
+    // validate_user_simple matches fn(&str, &str) -> bool
+    // validate_user_advance matches fn(u8) -> bool
+    println!(
+        "User validity {}",
+        is_valid_user(
+            &person_1.name,
+            banned_user,
+            person_1.age,
+            validate_user_simple,   // function pointer — no & needed, function names auto-coerce
+            validate_user_advance
+        )
+    );
+}
+
+/* 
+---------------------------------------------------------------------------------------------------------
+Concept/Topic              | Explanation
+---------------------------|-----------------------------------------------------------------------------
+Function Pointers          | Function pointers are pointers to regular functions.
+                           | They do not capture variables from their environment.
+                           | They can be passed where closures are expected.
+
+Closures                   | Closures may capture environment variables whereas function pointers cannot.
+vs Function Pointers       | Function pointers are concrete types written as fn(arg) -> Return.
+                           | They implement all three closure traits automatically.
+
+Passing to function        | Generics aren’t needed for passing function pointer to function.
+                           | The parameter type can be written directly as fn(args) -> Return.
+
+Conversion of Closures to  | A closure can be coerced to a function pointer only if it captures nothing.
+Function Pointer           
+
+Workaround for Conversion  | Workaround: Captured variables are passed as arguments to functions. 
+---------------------------------------------------------------------------------------------------------
+ */

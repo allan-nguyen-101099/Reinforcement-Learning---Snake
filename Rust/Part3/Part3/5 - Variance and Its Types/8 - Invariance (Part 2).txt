@@ -1,0 +1,45 @@
+// -------------------------------------------
+// 	        Invariance
+//              - Mutable references are invariant in their Type or T
+//                but covariant in their lifetime
+// -------------------------------------------
+// &'a mut T
+fn update_reference<'longer, 'shorter>(mut u_1: &'longer mut u8, mut u_2: &'shorter mut u8)
+where
+    'longer: 'shorter,
+{
+    u_2 = u_1; // &'shorter mut u8 = &'longer mut u8
+}
+fn main() {
+    // &'a mut &'b str  // (Note: The 2nd reference: &'b str was considered in the previous lesson on invariance) 
+                        // In this lesson we are focusing and explaining the first reference: &'a mut
+
+    let mut x1: u8 = 8;
+    let mut x2: u8 = 10;
+    let mut y = &mut x1;
+    {
+        let mut z = &mut x2;
+        update_reference(y, z);
+    }
+}
+
+
+/* 
+-----------------------------------------------------------------------------------------------------------------
+Concept / Topic                   | Explanation
+----------------------------------|-------------------------------------------------------------------------------
+Statement Clarification           | Mutable references are invariant in their type but covariant in their lifetime.
+                                  | These two properties apply to different aspects of the reference.
+
+Two Distinct Lifetimes            | A mutable reference has its own lifetime.
+                                  | The type it points to may have a separate lifetime.
+                                  | These lifetimes must be reasoned about independently.
+
+Invariance in Referenced Type     | Mutable references are invariant over the type T they point to.
+                                  | This prevents substituting types with longer or shorter lifetimes.
+
+Covariance in Reference Lifetime  | Mutable references are covariant in their own lifetime.
+                                  | A longer-lived mutable reference can be used where a shorter one is expected.
+                                  | The compiler safely shortens the lifetime when needed.
+------------------------------------------------------------------------------------------------------------------
+*/s

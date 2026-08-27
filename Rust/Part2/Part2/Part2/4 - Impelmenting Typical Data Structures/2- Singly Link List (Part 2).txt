@@ -1,0 +1,89 @@
+// -------------------------------------------
+// 		Link List (Part 2)
+// -------------------------------------------
+
+#[derive(Debug)]
+struct Linklist {
+    head: pointer,
+}
+
+#[derive(Debug)]
+struct Node {
+    element: i32,
+    next: pointer,
+}
+type pointer = Option<Box<Node>>;
+
+impl Linklist {
+    fn new() -> Linklist {      // constructor — returns an empty list
+        Linklist { head: None }  // head = None means list is empty
+    }
+
+    fn add(&mut self, element: i32) {
+        // .take() — replaces self.head with None and returns the old value
+        // This is needed because we can't move out of self.head while holding &mut self
+        let previous_head = self.head.take();
+        let new_head = Some(Box::new(Node {
+            element: element,        // store the new value
+            next: previous_head,     // new node's next = old head (push to front)
+        }));
+        self.head = new_head;  // update head to the new node
+    }
+
+    fn remove(&mut self) -> Option<i32> {
+        match self.head.take() {  // take() removes head and returns it
+            Some(previous_head) => {
+                self.head = previous_head.next;  // new head = old head's next node
+                Some(previous_head.element)      // return the removed element
+            }
+            None => None,  // list was already empty — nothing to remove
+        }
+    }
+
+    fn print(&self) {
+        let mut list_traversal = &self.head;  // start at head — &pointer (immutable borrow)
+        while !list_traversal.is_none() {     // while there is a node
+            println!("{:?}", list_traversal.as_ref().unwrap().element);
+            //                              .as_ref() — borrows the Box<Node> without moving it
+            //                              .unwrap() — safe because we just checked is_none()
+            list_traversal = &list_traversal.as_ref().unwrap().next;  // move to next node
+        }
+    }
+}
+fn main() {
+    let mut list = Linklist::new();
+    list.add(5);
+    list.add(7);
+    list.add(10);
+    list.add(15);
+    list.add(20);
+
+    //println!("List: {:?}", list);
+    list.print();
+    println!("{}", list.remove().unwrap());
+}
+
+
+/* 
+---------------------------------------------------------------------------------------------------------
+Concept / Topic         | Explanation
+------------------------|--------------------------------------------------------------------------------
+Constructor (new)       | A constructor method new() is defined to initialize an empty linked list.
+                        | It returns a LinkList instance with the head field set to None.
+
+Adding Elements (Push)  | This method will add a new node at the start of the list. 
+                        | The newly added node becomes the head and its next field points to previous head.
+
+Using take()            | Directly moving value out of self.head is not allowed with a mutable reference.
+                        | The take() method replaces the head with None and returns the previous value.
+                        | This temporarily removes the head while keeping the list structure valid.
+
+Removing Elements (Pop) | This method deletes the element at the beginning of the list.
+                        | The head is removed using take(), and the next of head becomes the new head.
+                        | The removed node’s element is returned.
+
+Printing the List       | A print method traverses the list starting from the head reference.
+                        | Iteration continues while the traversal pointer is not None.
+                        | The as_ref() method is used to access node contents without moving ownership.
+---------------------------------------------------------------------------------------------------------
+*/

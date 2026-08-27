@@ -1,0 +1,53 @@
+// -------------------------------------------
+// 	        HashMaps
+// -------------------------------------------
+
+use std::{collections::HashMap, hash::Hash};
+fn main() {
+    // Solution 1:
+    let words = vec!["Hello", "World", "Rust", "Programming"];
+    let counts = vec![5, 2, 15, 5];
+
+    // Solution 2:
+    let word_counts = vec![("Hello", 5), ("World", 2), ("Rust", 15), ("Programming", 5)];
+    let target_word = word_counts.contains(&("Hello", 5));
+
+    let mut word_counts: HashMap<&str, u8> = HashMap::new();
+    word_counts.insert("Hello", 5);
+    word_counts.insert("World", 2);
+    word_counts.insert("Rust", 15);
+    word_counts.insert("Programming", 5);
+    word_counts.insert("Programming", 15);
+    println!("HashMap: {:?}", word_counts);
+
+    let has_programming_key = word_counts.contains_key("Programming");
+    let programming_count = word_counts.get("Programming");
+
+    let new_entry = word_counts.entry("C++").or_insert(0);
+    println!("HashMap: {:?}", word_counts);
+
+    word_counts.entry("Hello").or_insert(15);
+    println!("HashMap: {:?}", word_counts);
+}
+
+/*
+--------------------------------------------------------------------------------------------
+Concept / Topic               | Explanation
+----------------------------- | ------------------------------------------------------------
+Motivation for Using HashMaps | Using separate or tuple-based vectors is inefficient.
+                              | Requires extra logic for searching and matching indices.
+                              | Allows duplicate entries easily.
+
+Introduction to HashMaps      | Stores data as unique key–value pairs.
+                              | Defined with two type parameters: key and value.
+                              | Enables fast lookups and updates.
+
+Basic Operations              | insert() adds or updates entries.
+                              | contains_key() checks for a key’s presence.
+                              | get() retrieves a value as an Option.
+
+Entry method                  | entry() provides flexible key access.
+                              | Returns (Occupied) or (Vacant) variants.
+                              | Allows for adding a value if key is missing.
+--------------------------------------------------------------------------------------------
+*/

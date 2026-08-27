@@ -1,0 +1,33 @@
+// -------------------------------------------
+// 	        stdout versus stderr
+// -------------------------------------------
+
+// Two types of outputs
+// 	- Normal Output -> stdout
+// 	- Error Output -> stderr
+
+fn main() {
+    println!("Program Output");  // println! — writes to STDOUT (standard output)
+    let x: Option<i32> = None;
+    // x.unwrap();  // would panic — unwrapping None
+
+    eprint!("Error 1: Error Message 1");   // eprint! — writes to STDERR, no newline
+    eprintln!("Error 2: Error Message 2"); // eprintln! — writes to STDERR, with newline
+    dbg!(x);  // dbg! also writes to STDERR (not stdout)
+
+    println!("This is standard output (stdout)");  // stdout — normal program output
+    eprint!("This is standard error (stderr)");    // stderr — separate stream for errors/debug
+    // Redirect stdout only:  cargo run > output.txt
+    // Redirect stderr only:  cargo run 2> errors.txt
+    // Redirect both:         cargo run > output.txt 2> errors.txt
+}
+
+/*
+-------------------------------------------------------------------
+stdout                          | stderr
+-------------------------------------------------------------------
+Normal output                   | Error or debugging output
+Usually line-buffered           | Usually unbuffered
+redirects to file using > or 1> | redirects to file using 2>
+-------------------------------------------------------------------
+*/

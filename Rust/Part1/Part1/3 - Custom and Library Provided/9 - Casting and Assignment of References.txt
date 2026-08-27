@@ -1,0 +1,90 @@
+// -------------------------------------------
+// 	        - Casting between references
+//          - Assignment of references
+// -------------------------------------------
+fn main() {
+    // ── Casting Between Values ────────────────────────────────────────────────
+    // `as` converts one primitive type to another (explicit type cast)
+    // `x as f32` → converts integer x (i32) to a floating-point f32
+    // No `&` involved here — this is plain VALUE casting, not reference casting
+    let x = 5;
+    let y = x as f32; // y = 5.0  (integer → float)
+
+    // ── Casting &T → &mut T (NOT ALLOWED) ────────────────────────────────────
+    // You CANNOT cast an immutable reference into a mutable reference.
+    // Reason: the original variable `data` was declared WITHOUT `mut`,
+    //         so no mutable access to it is allowed — period.
+    //         Casting can't override the immutability of the source.
+    //
+    // `&T → &mut T` is FORBIDDEN — would allow mutating something declared immutable
+    // let data = 42;
+    // let immutable_ref = &data;
+    // let mutable_ref = immutable_ref as &mut i32; // ❌ COMPILE ERROR
+    // &T -> &mut T -> not allowed
+
+    // ── Casting &mut T → &T (ALLOWED — called Reborrowing) ───────────────────
+    // You CAN cast a mutable reference DOWN to an immutable reference.
+    // This is safe: you are REDUCING permissions (write → read-only)
+    //
+    // `let mut data`          → mutable variable
+    // `let mutable_ref`       → &mut i32: mutable reference to data
+    // `mutable_ref as &i32`   → `as &i32` casts the &mut ref to an immutable &i32
+    //                           This is called REBORROWING
+    //
+    // After reborrowing:
+    //   `immutable_ref` → read-only view of data
+    //   `mutable_ref`   → temporarily "frozen": you CANNOT mutate through it
+    //                     while `immutable_ref` is active (borrowing rules)
+    let mut data = 42;
+    let mutable_ref = &mut data;
+    let immutable_ref = mutable_ref as &i32; // reborrow: &mut i32 → &i32
+
+    // `*mutable_ref = 43;`  → would ERROR here because immutable_ref is still active
+    // *mutable_ref = 43;
+
+    // `{:?}` → debug format; prints the VALUE the reference points to
+    // Both refs point to the same memory address (value: 42)
+    println!("{:?} {:?}", mutable_ref, immutable_ref); // 42 42
+
+    // Another name: Reborrowing
+
+    // ── Assignment of References ──────────────────────────────────────────────
+    // How references behave when assigned to another variable depends on their type:
+    //
+    // IMMUTABLE references (&T) → implement COPY
+    //   Assigning `ref_str_2 = ref_str_1` COPIES the reference
+    //   Both `ref_str_1` and `ref_str_2` point to the same data
+    //   Both remain valid simultaneously (multiple shared borrows allowed ✅)
+    //
+    // MUTABLE references (&mut T) → do NOT implement Copy → they are MOVED
+    //   Assigning a &mut ref moves it; original is no longer usable
+    //   Enforces: only ONE mutable borrow active at a time
+    let mut str = String::from("");
+
+    // `ref_str_1` → &String: immutable reference to `str`
+    let ref_str_1 = &str;
+
+    // `ref_str_2 = ref_str_1` → COPIES the reference (not the String data)
+    //   Both ref_str_1 and ref_str_2 are now valid borrows of `str`
+    //   This is allowed because &T is Copy
+    let ref_str_2 = ref_str_1;
+
+    // Both references still usable:
+    println!("{ref_str_1}"); // ✅ ref_str_1 still valid (was copied, not moved)
+    // println!("{ref_str_2}"); // ✅ would also work
+}
+/*
+--------------------------------------------------------------------------------------------------------
+Concept / Idea             | Explanation
+---------------------------| ---------------------------------------------------------------------------
+Casting between references | Casting an immutable reference to a mutable is not allowed.
+                           | A mutable reference can be casted to an immutable reference (reborrowing).
+                           |    - The mutable reference is “frozen” and cannot be used for mutation.
+                           |    - Trying to mutate will however give an error.
+
+Assignment of references   | Immutable references &T are Copied when assigned to another variable.
+                           |    - This is allowed as multiple shared immutable borrows are allowed.
+                           | Mutable references &mut T are Moved and not copied.
+                           |    - This preserves borrowing rules (single mutable reference at a time).
+--------------------------------------------------------------------------------------------------------
+*/

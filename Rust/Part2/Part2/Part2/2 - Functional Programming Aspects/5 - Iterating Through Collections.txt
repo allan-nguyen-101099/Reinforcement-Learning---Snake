@@ -1,0 +1,52 @@
+// -------------------------------------------
+//         - Iterating Through Collections
+// -------------------------------------------
+
+use std::collections::HashMap;
+
+fn main() {
+    let mut vec_1 = vec![45, 30, 85, 90, 41, 39];
+    // let mut vec_1_iter = vec_1.into_iter();  // explicit: creates an IntoIter<i32>
+    // let value_1 = vec_1_iter.next();         // manually calling next() — returns Option<i32>
+
+    // `for values in vec_1` — implicitly calls vec_1.into_iter()
+    // into_iter() MOVES the Vec — vec_1 is consumed and no longer accessible after this loop
+    for values in vec_1 {
+        println!("{values}");  // values is i32 (owned) — not a reference
+    }
+
+    // println!("{:?}", vec_1);  // ERROR: vec_1 was moved into the for loop above
+
+    let mut person: HashMap<String, i32> = HashMap::new();
+    person.insert("Hannash".to_string(), 40);  // .to_string() converts &str -> String (owned)
+    person.insert("Joseph".to_string(), 44);
+    person.insert("Sara".to_string(), 55);
+
+    // `for (name, age) in person` — calls person.into_iter()
+    // yields (String, i32) tuples — owned values
+    // HashMap is consumed — person no longer accessible after this loop
+    for (name, age) in person {
+        println!("The person {} has an age of {}", name, age);
+    }
+}
+
+/*
+----------------------------------------------------------------------------------------------------------
+Concept/Topic             | Explanation
+--------------------------|-------------------------------------------------------------------------------
+Iterators from Vec        | Collections like Vec can produce iterators using three primary methods.
+                          | iter(): convert a vec<T> into iterator over &T (immutable references).
+                          | iter_mut(): convert a vec<T> into iterator over &mut T (mutable references).
+                          | into_iter(): convert a vec<T> into iterator over T (owned values).
+
+for Loop Behavior         | for loops automatically call the appropriate iterator method.
+                          | for x in &vec → uses iter().
+                          | for x in &mut vec → uses iter_mut().
+                          | for x in vec → uses into_iter() and moves ownership.
+
+Ownership After Iteration | Using into_iter() moves the collection which disallows further access.
+
+HashMap Iteration         | iter() yields (&K, &V).
+                          | iter_mut() yields (&K, &mut V), i.e., only value as mutable reference.
+----------------------------------------------------------------------------------------------------------
+*/

@@ -1,0 +1,99 @@
+// -------------------------------------------
+// 			Generic Lifetimes
+// -------------------------------------------
+
+// Example 1:
+/* fn main() {
+    let int1 = 5;
+    let int2 = 10;
+    let picked_value = picking_int(&int1, &int2);
+    println!("{picked_value}");
+}
+
+fn picking_int<'a>(i: &'a i32, j: &'a i32) -> &'a i32 {
+    if rand::random() {
+        i
+    } else {
+        j
+    }
+}
+*/
+
+// Example 2:
+/*
+fn main(){
+let int1 = 5;
+    {
+        let int2 = 10;
+        let picked_value = picking_int(&int1, &int2);
+        println!("{picked_value}");
+    }
+}
+
+fn picking_int<'a>(i: &'a i32, j: &'a i32) -> &'a i32 {
+    if rand::random() {
+        i
+    } else {
+        j
+    }
+}
+*/
+
+// Example 3:
+/* fn main() {
+    let int1 = 5;
+    let picked_value;
+    {
+        let int2 = 10;
+        picked_value = picking_int(&int1, &int2);
+    }
+    //println!("{picked_value}");
+}
+
+fn picking_int<'a>(i: &'a i32, j: &'a i32) -> &'a i32 {
+    if rand::random() {
+        i
+    } else {
+        j
+    }
+}
+*/
+
+// Example 4 (active): returning a 'static reference — avoids the lifetime issue entirely
+// because the returned value does NOT depend on the inputs at all
+fn main() {
+    let int1 = 5;
+    let picked_value;
+    {
+        let int2 = 10;
+        picked_value = picking_int(&int1, &int2);  // picks a 'static value — not int1 or int2
+    }  // int2 dropped here — but picked_value doesn't point to int2, so no issue
+    println!("{picked_value}");  // OK: picked_value is 'static — lives for the whole program
+}
+
+// This version returns a 'static reference (a constant embedded in the binary)
+// It ignores both inputs entirely — just returns the value 6
+fn picking_int(i: &i32, j: &i32) -> &'static i32 {  // 'static — lives for the entire program
+    let y: &'static i32 = &6;  // 6 is a literal — it lives in the binary as a static value
+    y  // returns a 'static reference — valid anywhere, outlives any local variable
+}
+
+/*
+-----------------------------------------------------------------------------------------------------------
+Concept / Topic        | Explanation
+-----------------------|-----------------------------------------------------------------------------------
+Generic Lifetime       | They describe relationships between concrete reference lifetimes.
+                       | They are written using a tick followed by a name, such as 'a.
+                       | They connect input lifetimes with the return lifetime.
+
+Shortest Lifetime Rule | When multiple parameters share a lifetime parameter, the return lifetime
+                       | is the shortests of the input lifetimes.
+
+Some key points        | A function may specify that the return lifetime matches only one parameter.
+                       | In such cases, only a single (and not all) parameter needs lifetime annotation.
+                       | Returning a reference to a function local variable is invalid (dangling).
+
+Static lifetimes       | A 'static lifetime means the reference lives for the entire program.
+                       | A 'static reference satisfies any shorter lifetime requirement.
+-----------------------------------------------------------------------------------------------------------
+*/

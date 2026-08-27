@@ -1,0 +1,46 @@
+// -------------------------------------------------
+// 			- Combinators on Option
+// -------------------------------------------------
+
+fn main() {
+    // 1. map — transforms the inner value if Some, returns None unchanged
+    let name: Option<String> = None; // Some("alice") to test the Some path
+    let upper = name.map(|s| {  // closure runs only if name is Some
+        s.to_uppercase();       // compute uppercase — but the result is DISCARDED (no return)
+        print!("Inside the closure");  // map returns () here since no value is returned from closure
+    });
+    // NOTE: map() wraps the closure's return value in Some — here that is Some(())
+
+    // 2. and_then — chain operations where each step may return None (flatMap in other languages)
+    let input = Some(4);
+
+    // Verbose nested match — manually handling each None case:
+    let result = match input {
+        Some(value1) => match add_five_if_even(value1) {
+            Some(value2) => match divide_by_two_if_even(value2) {
+                Some(final_value) => Some(final_value),
+                None => None,
+            },
+            None => None,
+        },
+        None => None,
+    };
+
+    // and_then — replaces nested match: if any step returns None, the whole chain returns None
+    let result = input
+        .and_then(|x| if x % 2 == 0 { Some(x + 5) } else { None })  // step 1
+        .and_then(|x| divide_by_two_if_even(x));  // step 2 — only runs if step 1 returned Some
+}
+
+fn add_five_if_even(n: u32) -> Option<u32> {
+    if n % 2 == 0 { Some(n + 5) } else { None }  // even: add 5, odd: None
+}
+
+fn divide_by_two_if_even(n: u32) -> Option<u32> {
+    if n % 2 == 0 { Some(n / 2) } else { None }  // even: halve, odd: None
+}
+
+/*
+map         || Transform the inner value of an Option.
+and_then    || Sequence of operations where each step may also return Option.
+*/

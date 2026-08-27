@@ -1,0 +1,68 @@
+// -------------------------------------------
+// 	      Destructing References
+// -------------------------------------------
+
+// Types of References
+//     ref: &SomeType;       // immutable binding of an immutable reference
+// mut ref: &SomeType;       // mutable binding of an immutable reference
+//     ref: &mut SomeType;   // immutable binding of a mutable reference
+// mut ref: &mut SomeType;   // mutable binding of a mutable reference
+//     ref: &mut &SomeType;  // immutable binding of a mutable reference to an
+// immutable reference. mut ref: &mut &SomeType;  // mutable binding of a
+// mutable reference to an immutable reference.
+
+// variable: SomeType
+
+// &variable: SomeType
+// &mut variable: SomeType
+
+fn some_fn_1(&x: &i32) {}
+fn some_fn_2(&mut x: &mut i32) {}
+
+fn main() {
+    let mut x = 42;
+    let y = &mut x;
+    let &mut z = y; // let z = *y;
+
+    // Pattern Matching
+    // &mut z = &mut i32
+    // z = i32
+
+    let mut x = 42;
+    let y = &x;
+    let &z = y; // let z = *y;
+
+    // &z = &i32
+    // z = i32
+
+    let mut x = 42;
+    let y = &&x;
+    let &z = y; // let z = &x;
+
+    // &z = &&i32
+    // z = &i32
+
+    // let mut x = String::from("");
+    // let y = &x;
+    // let &z = y; // Error since x is a non-copy type
+}
+
+/*
+---------------------------------------------------------------------------------------------------------------------------
+Concept/Topic                | Explanation
+-----------------------------|----------------------------------------------------------------------------------------------
+Generalized Binding          | variable: Sometype
+(variable declaration)       | The left side is the name of hte varibale with its mutability configuration.
+                             | The right side dictates the type.
+
+Binding involving references | &variable: Sometype or &mut variable: SomeType.
+                             | References or mutable references can legally appear on the left side.
+                             | The references are matched against the right-hand expression.
+
+Type Inference               | Type inference in reference binding involves pattern matching.
+                             | Concrete type is inferred by matching references on left with the references on the right.
+                             | For instnace, &z = &&i32 -> z = &i32, and &z = &i32 -> z = i32
+
+Reference Destructuring      | Matching reference on both sides of an assignment is also called destructuring of references.
+-------------------------------------------------------------------------------------------------------------------------------
+*/

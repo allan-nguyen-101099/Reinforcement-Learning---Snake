@@ -1,0 +1,51 @@
+// -------------------------------------------
+// 	        Propagating Errors
+// -------------------------------------------
+
+use std::num::ParseIntError;  // the error type returned by i32's .parse()
+
+fn read_number(input: &str) -> Result<i32, ParseIntError> {
+    // Approach 1: explicit match (most verbose)
+    // match input.trim().parse::<i32>() {
+    //     Ok(num) => Ok(num),   // success: rewrap in Ok
+    //     Err(e) => Err(e),     // failure: rewrap in Err — propagates error to caller
+    // }
+
+    // Approach 2: early return on error
+    // let num = match input.trim().parse::<i32>() {
+    //     Ok(n) => n,           // unwrap the value
+    //     Err(e) => return Err(e),  // return early with the error
+    // };
+
+    // Approach 3: ? operator — most concise
+    // If parse() returns Err, ? returns early with that Err automatically
+    // If parse() returns Ok(n), ? unwraps it to n and continues
+    let num = input.trim().parse::<i32>()?;  // ? = "return Err if error, else unwrap"
+    Ok(num)  // wrap the parsed number in Ok before returning
+}
+
+fn extract_username(email: &str) -> Option<&str> {
+    let at_pos = email.find('@')?;  // ? on Option: returns None if '@' not found
+    //                         ^ .find() returns Option<usize>
+    let username = email.get(0..at_pos)?;  // ? again: returns None if slice fails
+    Some(username)  // wrap result in Some
+}
+fn main() {}
+
+/* 
+--------------------------------------------------------------------------------------------------------------
+Concept/Topic              | Explanation
+---------------------------|----------------------------------------------------------------------------------
+Error Propagation          | Passing an error from a lower-level function to its caller. 
+                           | This allows to avoid handling errors immediately at failure points.
+
+Question Mark Operator (?) | A shorthand for matching on a Result or Option. 
+                           | It returns early if an error (Err) or absence (None) occurs.  
+                           | Otherwise it unwraps the successful value and remaining code executes normally.
+
+? Simplifyies Code         | Replaces verbose match expressions, involving functions returning Result/Option.
+
+Multiple Uses of ?         | The ? operator can be used multiple times within a single function. 
+                           | This is useful when we want to check several fallible operations.
+-------------------------------------------------------------------------------------------------------------- 
+*/

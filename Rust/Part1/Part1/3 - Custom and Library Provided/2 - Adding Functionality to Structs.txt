@@ -1,0 +1,268 @@
+// -------------------------------------------
+// 	Adding Functionality to Structs
+// -------------------------------------------
+
+struct Car {
+    owner: String,
+    year: u32,
+    fuel_level: f32,
+    price: u32,
+}
+
+// later on move to inside the impl block
+// fn display_car_info(car: &Car) {
+//     println!(
+//         "Owner: {}, Year: {}, Price: {}",
+//         car.owner, car.year, car.price
+//     );
+// }
+
+// Requirements for a function to be considered as a method:
+//      - Must be inside an implementation block
+//      - First parameter must be self
+
+// Three forms of self a method could take
+//      - First form: An immutable reference to self (&self)
+//      - Second form: A mutable reference to self (&mut self)
+//      - Third form: An owned form of self (self)
+
+impl Car {
+    // First form: An immutable reference to self (&self)
+    fn display_car_info(&self) {
+        println!(
+            "Owner: {}, Year: {}, Price: {}",
+            self.owner, self.year, self.price
+        );
+    }
+
+    // Second form: A mutable reference to self (&mut self)
+    fn refuel(&mut self, gallons: f32) {
+        self.fuel_level += gallons;
+    }
+
+    // Third form: An owned form of self (self)
+    fn sell(self) -> Self {
+        // change to Car and then revert back
+        self
+    }
+
+    // Associated functions
+
+    fn monthly_insurance() -> u32 {
+        123
+    }
+
+    fn selling_price(&self) -> u32 {
+        self.price + self.monthly_insurance() // change to Car::
+    }
+
+    // Associated function: new (constructor)
+    fn new(name: String, year: u32) -> Self {
+        Self {
+            owner: name,
+            year: year,
+            fuel_level: 0.0,
+            price: 0,
+        }
+    }
+}
+
+fn main() {
+    let mut my_car = Car {
+        owner: String::from("ABC"),
+        year: 2010,
+        fuel_level: 0.0,
+        price: 5_000,
+    };
+	
+ // display_car_info(&my_car);
+    my_car.display_car_info();
+   
+
+    my_car.refuel(10.5);
+    let new_owner = my_car.sell();
+    // my_car.refuel(10.5);
+
+    let new_car = Car::new("XYZ".to_string(), 2020);
+}
+
+// -------------------------------------------
+// 	Adding Functionality to Structs
+// -------------------------------------------
+struct Car {
+    owner: String,
+    year: u32,
+    fuel_level: f32,
+    price: u32,
+}
+
+// Two requirement for a function to be considered as a method:
+//      - Must be inside an implementation block
+//      - First parameter must be self
+
+// Three forms of self a method could take
+//      - First form: An immutable reference to self (&self)
+//      - Second form: A mutable reference to self (&mut self)
+//      - Third form: An owned form of self (self)
+
+impl Car {
+    // ── Method Form 1: &self (Immutable Reference) ────────────────────────
+    // `&self`      → borrows the instance READ-ONLY; cannot modify any fields
+    //               The caller retains ownership; `my_car` is still usable after call
+    //               Use this when you only need to READ data, never change it
+    //
+    // C++ equivalent:
+    //   void display_car_info() const {   // `const` method = read-only in C++
+    //       cout << owner << year << price;
+    //   }
+    // Rust uses `&self` where C++ uses `const` on the method
+    fn display_car_info(&self) {
+        println!(
+            "Owner: {}, Year: {}, Price: {}",
+            self.owner, self.year, self.price
+        );
+    }
+
+    // ── Method Form 2: &mut self (Mutable Reference) ──────────────────────
+    // `&mut self`  → borrows the instance MUTABLY; CAN modify fields
+    //               The caller must have declared the variable with `mut`
+    //               Caller retains ownership after the call ends
+    //               Use this when the method needs to CHANGE the instance's state
+    //
+    // `gallons: f32` → an extra parameter passed in by the caller
+    // `self.fuel_level += gallons` → modifies the field directly through self
+    //
+    // C++ equivalent:
+    //   void refuel(float gallons) {      // non-const method = can modify in C++
+    //       fuel_level += gallons;         // implicit `this->fuel_level`
+    //   }
+    // Rust requires explicit `&mut self`; C++ non-const methods are mutable by default
+    fn refuel(&mut self, gallons: f32) {
+        self.fuel_level += gallons;
+    }
+
+    // ── Method Form 3: self (Owned / Consuming) ───────────────────────────
+    // `self`       → takes OWNERSHIP of the instance; the caller loses the variable
+    //               After calling `.sell()`, `my_car` is MOVED into the function
+    //               The original variable is invalid after this call
+    //               Use this when the method should CONSUME or TRANSFER the instance
+    //
+    // `-> Self`    → returns the owned instance (Self = Car here)
+    //               This pattern is common for builder/transformer methods
+    //
+    // C++ equivalent: NO direct equivalent
+    //   C++ has move semantics (std::move) but does not enforce it at compile time
+    //   In C++ you could still accidentally use the moved-from object (undefined behavior)
+    //   Rust makes it a COMPILE ERROR to use `my_car` after `.sell()` is called
+    fn sell(self) -> Self {
+        // `self` here is the owned Car instance
+        // returning `self` passes ownership back to the caller
+        self
+    }
+
+    // ── Associated Function (no self) ─────────────────────────────────────
+    // No `self` parameter → this is an ASSOCIATED FUNCTION, not a method
+    // It belongs to the TYPE `Car`, not to any specific instance
+    // Called with `Car::monthly_insurance()` — NOT with dot notation
+    //
+    // C++ equivalent:
+    //   static int monthly_insurance() {  // `static` method in C++
+    //       return 123;
+    //   }
+    //   Car::monthly_insurance();          // called same way as Rust
+    // Rust uses associated functions where C++ uses static methods
+    fn monthly_insurance() -> u32 {
+        123
+    }
+
+    // ── Method using both &self and an Associated Function ────────────────
+    // `&self`          → read-only borrow of the instance (reads `self.price`)
+    // `Car::monthly_insurance()` → calls the associated function using the type name
+    //                              (could also write `Self::monthly_insurance()`)
+    //
+    // C++ equivalent:
+    //   int selling_price() const {
+    //       return price + Car::monthly_insurance();  // same call syntax as Rust
+    //   }
+    fn selling_price(&self) -> u32 {
+        self.price + Car::monthly_insurance()
+    }
+
+    // ── Associated Function: new (Constructor) ────────────────────────────
+    // The most common associated function — acts as a CONSTRUCTOR
+    // No `self` → not called on an instance; creates a NEW instance instead
+    // Returns `Self` → returns a fully initialized `Car`
+    //
+    // `name: String` → takes ownership of the String passed in
+    // `year: u32`    → Copy type, just copied in
+    // `year`         → shorthand for `year: year` (field init shorthand when
+    //                  variable name matches field name)
+    // `fuel_level: 0.0`, `price: 0` → default values for unspecified fields
+    //
+    // C++ equivalent:
+    //   Car(string name, int year) {      // constructor with same name as class
+    //       owner = name;
+    //       this->year = year;
+    //       fuel_level = 0.0;
+    //       price = 0;
+    //   }
+    // Key difference: Rust's constructor is just a regular function named `new`
+    // (by convention) — there is NO special constructor syntax like C++
+    // You could name it anything; `new` is just the idiomatic choice
+    fn new(name: String, year: u32) -> Self {
+        Self {
+            owner: name,
+            year,           // shorthand: same as `year: year`
+            fuel_level: 0.0,
+            price: 0,
+        }
+    }
+}
+fn main() {
+    let mut my_car = Car {
+        owner: String::from("ABC"),
+        year: 2010,
+        fuel_level: 0.0,
+        price: 5_000,
+    };
+    my_car.display_car_info();
+
+    my_car.refuel(10.5);
+    let new_owner = my_car.sell();
+    // my_car.refuel(10.5);
+
+    let new_car = Car::new(String::from("XYZ"), 2020);
+}
+/*
+--------------------------------------------------------------------------------------------------
+         Concepts           |                          Details / Explanations
+--------------------------------------------------------------------------------------------------
+Why to add functionality    | - Structs store data, but data alone is not powerful
+                            | - Adding functionality lets structs act on their own data
+                            | - Making structs more useful and expressive building blocks
+--------------------------------------------------------------------------------------------------
+Implementation Blocks       | - Provide a way to attach functions directly to a type
+                            | - Defined using "impl TypeName { ... }"
+                            | - Organize functionality associated with the type
+--------------------------------------------------------------------------------------------------
+Free Functions vs Methods   | - Free functions are stand alone and not part of impl blocks
+                            | - Methods are inside an "impl" blocks and uses "self"
+                            | - Methods are called via dot notation
+--------------------------------------------------------------------------------------------------
+The "self" Parameter        | - Refers to the instance on which the method is called
+                            | - Automatically passed; no need to write explicitly during call
+                            | - Two rules for a method: inside "impl" - first parameter is "self"
+--------------------------------------------------------------------------------------------------
+Three forms of "self"       | - &self: Immutable reference (read-only access)
+                            | - &mut self: Mutable reference (allows modifications)
+                            | - self: Owned form (takes ownership of the instance)
+--------------------------------------------------------------------------------------------------
+The "Self" Keyword          | - "Self" (capital S) refers to the type itself in an "impl" block
+                            | - Preferred over type’s name inside impl blocks
+--------------------------------------------------------------------------------------------------
+Associated Functions        | - Functions in "impl" that do not take "self"
+                            | - Called using "TypeName::function_name()"
+                            | - new constructor function is a common type of associated function
+                            | - Returns a new instance of the type with given and default fields
+--------------------------------------------------------------------------------------------------
+*/

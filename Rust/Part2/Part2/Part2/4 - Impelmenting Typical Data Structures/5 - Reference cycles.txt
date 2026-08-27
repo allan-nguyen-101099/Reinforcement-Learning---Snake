@@ -1,0 +1,75 @@
+
+// -------------------------------------------
+// 		Reference Cycles 
+// -------------------------------------------
+/* 
+use std::cell::RefCell; 
+use std::rc::{Rc, Weak}; 
+#[derive(Debug)] 
+struct Node {
+    next: Option<Weak<RefCell<Node>>>, 
+}
+
+impl Drop for Node {
+    fn drop(&mut self) {
+        println!("Dropping {:?}", self);
+    }
+}
+fn main() {    
+    let a = Rc::new(RefCell::new(Node {next: None} )); 
+    println!("a strong count: {:?}, a weak count: {:?}", Rc::strong_count(&a), Rc::weak_count(&a)); 
+
+    let b = Rc::new(RefCell::new(Node{next: Some(Rc::downgrade(&a))})); 
+    println!("B is created: \n a strong count: {:?}, a weak count: {:?}", Rc::strong_count(&a), Rc::weak_count(&a));  
+    println!("b strong count: {:?}, b weak count: {:?}", Rc::strong_count(&b), Rc::weak_count(&b));
+
+    let c = Rc::new(RefCell::new(Node {next: Some(Rc::downgrade(&b))})); 
+
+    (*a).borrow_mut().next = Some(Rc::downgrade(&c)); 
+
+    println!("After creating cycle: \n a strong count: {:?}, a weak count: {:?}", Rc::strong_count(&a), Rc::weak_count(&a)); 
+    println!("b strong count: {:?}, b weak count: {:?}", Rc::strong_count(&b), Rc::weak_count(&b)); 
+    println!("c strong count: {:?}, c weak count: {:?}", Rc::strong_count(&c), Rc::weak_count(&c)); 
+
+    println!("a {:?}", a);
+
+
+}
+
+*/ 
+
+
+use std::borrow::Borrow; 
+use std::rc::{Rc, Weak};  // Weak = a non-owning reference — does NOT increase strong_count
+                          // Prevents reference cycles: Rc keeps data alive, Weak does not
+use std::cell::{RefCell, Ref}; 
+
+#[derive(Debug)]
+struct Node {
+    value: i32, 
+    parent: RefCell<Weak<Node>>,      // Weak pointer to parent — parent does NOT keep children alive
+                                       // Using Weak breaks the cycle: child -> parent is Weak, parent -> child is Rc
+    children: RefCell<Vec<Rc<Node>>>, // Rc pointers to children — children are OWNED by parent
+                                       // RefCell allows mutating children after construction
+}
+fn main() { 
+    // leaf has no parent yet, no children
+    let leaf  = Rc::new(Node {
+        value: 3, 
+        parent: RefCell::new(Weak::new()),  // Weak::new() = empty/unset weak reference
+        children: RefCell::new(vec![]),
+    }); 
+
+    // branch owns leaf as a child
+    let branch = Rc::new(Node {
+        value: 5, 
+        parent: RefCell::new(Weak::new()),
+        children: RefCell::new(vec![Rc::clone(&leaf)]),  // branch strongly owns leaf
+    });
+
+    // Set leaf's parent to branch using a WEAK reference
+    // Rc::downgrade(&branch) creates a Weak<Node> from an Rc<Node> — no strong_count increment
+    *leaf.parent.borrow_mut() = Rc::downgrade(&branch);
+    // Now: branch -> leaf is strong (Rc), leaf -> branch is weak (Weak)
+    // No cycle: when branch drops, leaf's weak parent becomes invalid — no memory leak
+}

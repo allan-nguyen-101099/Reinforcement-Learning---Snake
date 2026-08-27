@@ -1,0 +1,47 @@
+// -------------------------------------------------
+// 			- Iterators on Option
+// -------------------------------------------------
+
+fn main() {
+    // 1. iter() — converts Option<T> into an iterator over &T (borrows the value)
+    let opt = Some(42);
+    let x = opt.iter().next().unwrap();  // .iter() yields one &i32 for Some, nothing for None
+    for value in opt.iter() {            // loops once for Some, zero times for None
+        println!("{value}");             // value is &i32 here
+    }
+
+    // 2. into_iter() — converts Option<T> into an iterator over T (consumes the value)
+    let opt = Some(42);
+    for value in opt.into_iter() {  // opt is MOVED — consumed by into_iter()
+        println!("{value}");        // value is i32 (owned)
+    }
+    // println!("{:?}", opt);  // ERROR: opt was moved into the for loop
+
+    // 3. iter_mut() — converts Option<T> into an iterator over &mut T
+    let mut opt = Some(10);
+    for value in opt.iter_mut() {  // loops once if Some, gives &mut i32
+        *value += 10;              // * dereferences the &mut i32 to modify the inner value
+        println!("{value}");
+    }
+    // opt is still usable after iter_mut() — only borrowed mutably, not moved
+
+    // 4. Iterating over a Vec<Option<T>> with mut access
+    let mut vec = vec![Some(1), Some(2), Some(3)];
+    for item in vec.iter_mut() {
+        // item is &mut Option<i32>
+        // .as_mut() converts &mut Option<T> -> Option<&mut T> so we can modify the inner value
+        let value = item.as_mut().unwrap();  // get &mut i32
+        // *value += 1;  // could mutate here
+    }
+}
+
+
+/*
+-----------------------------------------------------
+Method         | Yields           | Usable After
+-----------------------------------------------------
+iter()         | &Option<T>       | ✅ Yes
+into_iter()    | Option<T>        | ❌ No (moved)
+iter_mut()     | &mut Option<T>   | ✅ Yes
+-----------------------------------------------------
+*/

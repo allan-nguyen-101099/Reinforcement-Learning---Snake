@@ -1,0 +1,133 @@
+
+pub use customer::Customer;
+pub use order::Order;
+pub use product::{Category, Product};
+//! # Online Bussiness 
+//! This is a rust library for online store 
+
+/// This is product module
+mod product {
+    pub use category::Category;
+    /// Struct for storing product related information.
+    #[derive(PartialEq, Debug)]
+    pub struct Product {
+        id: u64,
+        pub name: String,
+        price: f64,
+        category: Category,
+    }
+
+    impl Product {
+        /// # Example
+        /// ```
+        /// use project_1234::Category;
+        /// use project_1234::Product;
+        /// let some_product = Product::new(1, String::from("Laptop"), 799.99, Category::Electronics);
+        /// assert_eq!(some_product.name, String::from("Laptop"));
+        /// ```
+        pub fn new(id: u64, name: String, price: f64, category: Category) -> Product {
+            Product {
+                id,
+                name,
+                price,
+                category,
+            }
+        }
+    }
+    mod category {
+        ///  Enum for representing product categories.
+        #[derive(PartialEq, Debug)]
+        pub enum Category {
+            Electronics,
+            Clothing,
+            Books,
+        }
+    }
+
+    impl Product {
+        fn calculate_tax(&self) -> f64 {
+            self.price * 0.1
+        }
+
+        pub fn product_price(&self) -> f64 {
+            self.price -  self.calculate_tax()
+        }
+    }
+}
+
+mod customer {
+    pub struct Customer {
+        id: u64,
+        name: String,
+        email: String,
+    }
+
+    impl Customer {
+        pub fn new(id: u64, name: String, email: String) -> Customer {
+            Customer { id, name, email }
+        }
+    }
+}
+
+mod order {
+    use crate::customer::Customer;
+    use crate::product::Product;
+    pub struct Order {
+        id: u64,
+        product: Product,
+        customer: Customer,
+        quantity: u32,
+    }
+
+    impl Order {
+        pub fn new(id: u64, product: Product, customer: Customer, quantity: u32) -> Order {
+            Order {
+                id,
+                product,
+                customer,
+                quantity,
+            }
+        }
+        fn calculate_discount(&self) -> f64 {
+            if self.quantity > 5 {
+                0.1
+            } else {
+                0.0
+            }
+        }
+
+        pub fn total_bill(&self) -> f64 {
+            let discount = self.calculate_discount();
+            let total_before_discount = self.product.product_price() * self.quantity as f64;
+            total_before_discount - (total_before_discount * discount)
+        }
+    }
+}
+
+
+
+
+/* 
+---------------------------------------------------------------------------------------------------------------------------
+Topic / Concept          | Explanation                                                                                                 
+---------------------------------------------------------------------------------------------------------------------------
+Generating Documentation |- `cargo doc --open` shows how the package will appear on crates.io.                                         
+                         |- Public items appear in documentation, while private items remain hidden.               
+                         |- Documentation comments starts with (`///`). 
+                         |- They are added to modules, structs, enums, etc to describe usage and behavior.         
+                         |- Code blocks in documentation comments can include examples, tests, or panic notes.                         
+                         |- Code blocks in (```) are executed as documentation tests using 'cargo test'.              
+                         |- This helps verify examples and prevent outdated documentation.                                            
+
+Preparing for Publishing |- The crate root can be documented using `//!` comments at the top of the file.                              
+                         |- Cargo.toml should include description, license, homepage, and repository fields to avoid warnings.        
+                         |- The package name must be unique (no crate with the same name on crates.io should exist). 
+                         |- All working directory changes must be committed or published with `--allow-dirty`. 
+                         |- Publishing to crates.io requires logging in with GitHub and generating an API token.                                                    
+
+Publishing & Versioning  |- `cargo publish` uploads the package, which then appears under the user’s crates.io dashboard.               
+                         |- Published versions cannot be removed, but a version can be “yanked” to prevent future use.                 
+                         |- New versions require updating the version number in Cargo.toml. 
+                         |- API tokens should be kept secret or revoked if leaked. 
+------------------------------------------------------------------------------------------------------------------------------
+ */

@@ -1,0 +1,55 @@
+// -------------------------------------------
+// 			Derived Traits
+// 			Marker Traits
+// -------------------------------------------
+
+// Marker trait — no methods, just requires these super-traits to be implemented
+// Any type implementing Properties must also implement PartialEq, Default, and Clone
+trait Properties: PartialEq + Default + Clone {}
+
+// #[derive(...)] — attribute that AUTO-IMPLEMENTS the listed traits
+// Debug   — enables {:?} formatting
+// PartialEq — enables == and != comparisons
+// Default — enables Student::default() to create a zero-value instance
+// Clone   — enables .clone() to create a copy
+#[derive(Debug, PartialEq, Default, Clone)]
+struct Student {
+    name: String,  // String's Default = empty string ""
+    age: u8,       // u8's Default = 0
+    sex: char,     // char's Default = '\0' (null character)
+}
+impl Properties for Student {}  // empty impl — satisfies the trait marker contract
+                                 // works because Student already derives PartialEq, Default, Clone
+fn main() {
+    let s_1 = Student {
+        name: String::from("ABC"),
+        age: 35,
+        sex: 'M',
+    };
+
+    let s_2 = Student {
+        name: String::from("XYZ"),
+        age: 40,
+        sex: 'M',
+    };
+
+    println!("Student: {:?}", s_1);           // {:?} works because of #[derive(Debug)]
+    println!("s_1 and s_2 are equal: {}", s_1 == s_2);  // == works because of #[derive(PartialEq)]
+}
+
+/*
+------------------------------------------------------------------------------------------
+Concept/Topic        | Explanation
+---------------------|--------------------------------------------------------------------
+Derived Traits       | The #[derive(..)] attribute automatically implements common traits.
+                     | Examples include Debug, PartialEq, Clone, and Default.
+                     | This avoids writing manual boilerplate implementations.
+
+Debug and Formatting | The Debug trait enables printing using the {:?} formatter.
+                     | The PartialEq enables comparison using ==.
+
+Marker Traits        | Marker traits have no methods and serve as metadata indicators.
+                     | They express constraints or properties about a type.
+                     | They often include super traits to enforce required capabilities.
+------------------------------------------------------------------------------------------
+*/

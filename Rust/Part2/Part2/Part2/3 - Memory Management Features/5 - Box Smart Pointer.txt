@@ -1,0 +1,59 @@
+// -------------------------------------------
+//         Box Smart Pointer (Part 1)
+// -------------------------------------------
+
+//       Simple Pointer          ||         Smart Pointers
+// ----------------------------------------------------------------------
+// Just stores memory address    ||   Special capabilities
+// Indicated by &                ||   Not just simple references
+// Also called references        ||
+// No special capabilities       ||
+
+/*
+enum Conveyance {
+    Car(i32),
+    Train(i32),
+    Air(i32),
+    Walk
+}
+*/
+
+#[derive(Debug)]
+enum List {
+    Cons(i32, Box<List>),  // Box<List> — stores a POINTER to the next node on the HEAP
+                           // Without Box, List would be infinite size — compiler error
+                           // Box has a fixed pointer size (8 bytes), breaking the recursion
+    Nil,                   // the terminating variant — marks the end of the list
+}
+
+fn main() {
+    // let x = 0.625;
+    // let y = Box::new(x);  // x copied to heap, y is a Box<f64> on the stack pointing to heap
+    // let z = &x;           // regular reference — no heap allocation
+
+    // Build a linked list: 1 -> 2 -> 3 -> Nil
+    let list = List::Cons(
+        1,
+        Box::new(List::Cons(2, Box::new(List::Cons(3, Box::new(List::Nil))))),
+        //       ^^^^^^^^^^^^ each Box::new() allocates its value on the heap
+    );
+
+    println!("{:?}", list);  // {:?} works because of #[derive(Debug)]
+}
+
+/* 
+----------------------------------------------------------------------------------------------
+Concept / Topic          | Explanation
+-------------------------|--------------------------------------------------------------------
+Pointer vs Smart Pointer | A regular pointer stores only a memory address.
+                         | References in Rust are simple pointers without extra capabilities.
+                         | Smart pointers provide additional behavior and metadata.
+
+Box Smart Pointer        | Box<T> stores data on the heap and gives its ownership rights.
+                         | The Box itself is stored on the stack and points to heap memory.
+                             
+Use Case of Box          | Recursive types contain instances of themselves.
+                         | For such types, the compiler is unable to infer the size.
+                         | Wrapping recursive enum variants in a Box solves out the problem.
+--------------------------------------------------------------------------------------------
+*/

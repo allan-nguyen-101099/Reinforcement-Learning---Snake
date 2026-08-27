@@ -1,0 +1,64 @@
+// -------------------------------------------
+// 			- Compiler Directives
+// ------------------------------------------
+// ── Compiler Directives (Attributes) ───────────────────────────────────────────────
+// Attributes are annotations written as `#[...]` or `#![...]` that give
+// instructions to the compiler about how to handle the code.
+
+// `#!`              → the `!` means this attribute applies to the ENTIRE FILE (inner attribute)
+//                     Without `!`, the attribute applies to the NEXT item only (outer attribute)
+// `[`               → opens the attribute
+// `allow`           → directive: tells the compiler to SUPPRESS (allow/ignore) a specific warning
+// `(`               → opens the argument to `allow`
+// `unused_variables`→ the warning category to suppress:
+//                     normally triggered when a variable is declared but never used
+//                     Applying this FILE-WIDE silences that warning for ALL variables in the file
+// `)`               → closes the argument
+// `]`               → closes the attribute
+#![allow(unused_variables)]
+
+// `#`               → starts an OUTER attribute (no `!` = applies only to the NEXT item below)
+// `[allow(dead_code)]` → suppresses the "dead code" warning:
+//                     normally triggered when a function/item is defined but never called
+//                     This applies ONLY to the `fn square` immediately below
+#[allow(dead_code)]
+
+// ── Function: square ────────────────────────────────────────────────────────
+// This function is NEVER called in main. Without `#[allow(dead_code)]` above,
+// the compiler would warn: warning: function `square` is never used
+fn square(x: i32) -> i32 {
+    // `temp` is declared but never used anywhere in this function.
+    // Normally produces: warning: unused variable `temp`
+    // That warning is suppressed by `#![allow(unused_variables)]` at the file level.
+    let temp = 42;
+
+    // `x * x`       → multiplies `x` by itself (computes the square of x)
+    // No semicolon  → this is an EXPRESSION; it becomes the implicit return value
+    x * x
+}
+
+fn main() {
+    // `i` is declared and assigned 10, but never used after this line.
+    // Normally: warning: unused variable `i`
+    // Suppressed by the file-level `#![allow(unused_variables)]` directive.
+    let i = 10;
+
+    // `String::from("Hi there")` → creates a heap-allocated String
+    // `s` is also declared but never used — warning suppressed by the file-level directive.
+    let s = String::from("Hi there");
+}
+
+/*
+Topic                      | Summary
+---------------------------|--------------------------------------------------------------
+Compiler Directives        | Annotations that instruct the compiler on how to parse and handle code
+                           | Can be applied to lines, functions, or entire files
+                           | Starts with # and square brackets containing the directive
+Allow Directive            | Permits behavior that would normally trigger a compiler warning
+Common Syntax Pattern      | All directives follow the #[directive] or #![directive] format
+Placement of a directive   | Controls the application at variable-level, function-level or file-level
+Placement Rule             | Global directives must be the first line in the file before any code.
+Other Directives           | Not all directives handle bad behavior
+                           | Some improve efficiency or provide conveniences
+---------------------------|--------------------------------------------------------------
+*/

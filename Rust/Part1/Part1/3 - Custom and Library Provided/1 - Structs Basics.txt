@@ -1,0 +1,59 @@
+// -------------------------------------------
+// 	    Structs Basics
+//      - Named-field Struct
+//      - Tuple Struct
+//      - Unit-like Struct
+// -------------------------------------------
+
+// Structs = Group related data
+
+// Write the field names only first and then combine them in the form of a
+// struct and add
+
+// Named-field struct
+struct Car {
+    owner: String,
+    year: u32,
+    fuel_level: f32,
+    price: u32,
+}
+
+struct Point_2D(i32, i32);
+struct Point_3D(i32, i32, i32);
+
+fn print_tuple_coordinates(coords: (i32, i32)) {
+    // later on change hte type to coords: point_2D
+    println!("x: {}, y: {}", coords.0, coords.1);
+}
+struct ABC;
+fn main() {
+    let my_car = Car {
+        // change to mutable later on
+        owner: String::from("ABC"),
+        year: 2010,
+        fuel_level: 0.0,
+        price: 5_000, // comment this out and then change back
+    };
+    let car_year = my_car.year;
+    my_car.fuel_level = 30.0;
+    let extracted_owner = my_car.owner.clone(); // change to my_car.owner.clone()
+    println!("Owner is: {}", my_car.owner); // change to my_car.price later and then revert back
+
+// partial move: Some portion of data has moved out of struct instance
+    let another_car = Car {
+        //owner: String::from("new_name"), // comment this out later on
+        ..my_car
+    };
+
+    //println!("Owner is: {}", my_car.owner); // comment later on
+
+    // Tuple Structs
+    let point1 = (1, 3); // later on change the variable name to point_2D 
+    let point2 = (4, 10, 13); // later on change the variable name to point_3D 
+
+    let point1 = Point_2D(1, 3);
+    let point2 = Point_3D(4, 10, 13);
+
+    // Unit-like Struct
+	
+}

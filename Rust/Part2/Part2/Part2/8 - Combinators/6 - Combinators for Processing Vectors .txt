@@ -1,0 +1,54 @@
+// -------------------------------------------------
+// 		- Combinators for Processing Vectors
+// -------------------------------------------------
+fn main() {
+    // 1. skip(n) — skip the first N elements (useful for skipping CSV headers)
+    let csv_data = vec!["name,age", "Alice,30", "Bob,25"];
+    let data_without_headers = csv_data.into_iter().skip(1).collect::<Vec<&str>>();
+    //                                                      ^^ skip(1) skips the header row
+    println!("First row removed: {:?}", data_without_headers);
+
+    // 2. take(n) — take only the first N elements (useful for previewing large datasets)
+    let data = vec![
+        String::from("row1"),
+        String::from("row2"),
+        String::from("row3"),
+        String::from("row4"),
+    ];
+    let preview = data.iter().take(2).collect::<Vec<&String>>();  // .iter() borrows, yields &String
+    println!("Data preview: {:?}", preview);
+
+    // 3. enumerate() — attaches (index, value) to each element
+    let code = vec!["fn main() {", " println!(\"Hello\")", "}"];
+    let code_with_line_numbers = code.into_iter().enumerate().collect::<Vec<(usize, &str)>>();
+    //                                            ^^^^^^^^^^ yields (0, "fn main() {"), (1, ...) etc.
+    println!("Code with line numbers {:?}", code_with_line_numbers);
+
+    // 4. fold(initial, closure) — accumulate with custom logic and initial value
+    let nums = vec![1, 2, 3, 4];
+    let sum_of_squares = nums.iter().fold(0, |acc, &x| acc + x * x);
+    //                                   ^  accumulator starts at 0
+    //                                         ^^^  closure: acc = running total, x = current element
+    println!("Sum of squares of 1,2,3,4 = {sum_of_squares}");  // 1+4+9+16 = 30
+
+    // 5. reduce(closure) — like fold() but uses the FIRST element as the initial accumulator
+    // No initial value needed — returns Option<T> (None if Vec is empty)
+    let nums = vec![1, 2, 3, 4];
+    let result = nums.into_iter().reduce(|a, b| a.max(b));  // finds the maximum
+    println!("{:?}", result);  // Some(4)
+    // Accumulates: (((1.max(2)).max(3)).max(4)) = 4
+}
+
+
+/*
+-----------------------------------------------------------------------------------------
+Combinator      | Working                       | Use
+-----------------------------------------------------------------------------------------
+skip()	        | Skip the first N items Vec<T>	| Useful for ignoring headers
+take()	        | Take only the first N items	| Good for previewing large datasets
+enumerate()	    | Attach index to each item	    | Useful for logging or labeling
+fold()	        | Accumulate with custom logic  | Accumulation logic
+reduce()	    | Combine elements pairwise     | Combing elements into a single result
+-----------------------------------------------------------------------------------------
+*/
+

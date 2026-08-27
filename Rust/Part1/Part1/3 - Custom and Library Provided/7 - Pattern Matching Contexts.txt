@@ -1,0 +1,172 @@
+// -------------------------------------------
+// 	        Pattern Matching Contexts
+// -------------------------------------------
+
+// Value: The thing you are trying to match against
+// Pattern: The shape or structure you are matching
+//
+// Every pattern match in Rust has two ingredients:
+//   VALUE   = the actual data you have (e.g. a variable, a number, a tuple)
+//   PATTERN = the "shape" you compare it to (e.g. a literal, a variable name, a tuple structure)
+// If the value fits the pattern → the match SUCCEEDS and variables in the pattern get bound
+// If the value does not fit   → the match FAILS and that branch/block is skipped
+fn main() {
+    // ── 1. Match Expression ──────────────────────────────────────────────────
+    // The most explicit form of pattern matching.
+    // `match` compares ONE value against MULTIPLE patterns in order,
+    // and runs the FIRST arm whose pattern matches.
+    //
+    // `match`   → keyword: starts the match expression
+    // `x`       → VALUE: the thing being matched (x = 3)
+    // `{`       → opens the list of arms
+    let x = 3;
+    match x {
+        // Each line is a MATCH ARM:   pattern => expression,
+        //
+        // `1`   → LITERAL PATTERN: matches only if x == 1 exactly
+        // `=>`  → fat arrow: "if this pattern matches, evaluate this expression"
+        1 => println!("One"),    // x is 3, not 1 → skipped
+
+        // `2`   → literal pattern: matches only if x == 2
+        2 => println!("Two"),    // x is 3, not 2 → skipped
+
+        // `3`   → literal pattern: matches because x == 3 ✅
+        3 => println!("Three"),  // ← THIS runs; output: "Three"
+
+        // `_`   → WILDCARD PATTERN: matches ANYTHING not caught above
+        //         Required to make match exhaustive (all values covered)
+        //         Like `default:` in C++ switch
+        _ => println!("Something Else"),  // not reached here
+    }
+    // Value: x (= 3)
+    // Pattern: 1, 2, 3, _
+
+    // ── 2. If Let ────────────────────────────────────────────────────────────
+    // `if let` = shorthand match for a SINGLE pattern.
+    // Only runs the block if the value matches the pattern.
+    // Useful when you only care about ONE specific case.
+
+    // ── 2a. Refutable pattern (may or may not match) ──────────────────────
+    // `if let 5 = x` → "if x matches the pattern 5"
+    //   `5`   → LITERAL PATTERN: only matches if x == 5
+    //   `= x` → x is the VALUE being tested
+    //   Here x = 3, so 3 ≠ 5 → pattern FAILS → block is skipped
+    let x = 3;
+    if let 5 = x {
+        // if x == 5
+        println!("Matched Five"); // NOT printed — x is 3, not 5
+    }
+    // Value: x (= 3)
+    // Pattern: 5
+
+    // ── 2b. Irrefutable pattern (ALWAYS matches) ──────────────────────────
+    // `if let x = 5` → "let x = 5 inside this block"
+    //   Here the PATTERN is a VARIABLE `x` (not a literal)
+    //   A variable pattern is IRREFUTABLE — it matches ANY value
+    //   So this ALWAYS runs (equivalent to just `let x = 5; { ... }`)
+    //   The compiler warns: "irrefutable pattern in `if let`"
+    //
+    // This inner `x` SHADOWS the outer `x` (which was 3)
+    // Inside the block, `x` = 5 (the new binding)
+    if let x = 5 {
+        // let x = 5   ← x is rebound to 5 inside this scope
+        println!("This always run");   // always printed
+        println!("x: inner {x}");     // prints: x: inner 5
+    }
+    // Block ends → inner `x` (= 5) is dropped; outer `x` (= 3) is visible again
+    println!("x: outer {x}"); // prints: x: outer 3
+
+    // Binding Pattern summary:
+    // Value:   a concrete value (e.g. 5)
+    // Pattern: a variable name (e.g. x) → variable gets BOUND to the value
+
+    // ── 3. While Let ─────────────────────────────────────────────────────────
+    // `while let` = keep looping AS LONG AS the value matches the pattern.
+    // When the pattern FAILS to match → loop exits immediately.
+    //
+    // Similar to `while (condition)` but uses pattern matching instead of bool.
+    let numbers = vec![1, 2, 2, 3, 2, 0];
+    let mut i = 0;
+
+    // `while let 2 = numbers[i]`
+    //   VALUE:   `numbers[i]` — the element at current index
+    //   PATTERN: `2`          — literal pattern; matches only if element == 2
+    //
+    // numbers[0] = 1 → 1 ≠ 2 → pattern FAILS immediately → loop never runs
+    // (If numbers started with 2s, the loop would run until a non-2 is found)
+    while let 2 = numbers[i] {
+        println!("Found a value 2 at index: {}", i);
+        i += 1;
+    }
+    // Value: numbers[i]
+    // Pattern: 2
+
+    // ── 4. Let Binding (Destructuring) ───────────────────────────────────────
+    // `let` itself uses patterns — not just variable names.
+    // You can DESTRUCTURE compound values directly in a `let` statement.
+    //
+    // `(a, b)`   → TUPLE PATTERN: matches a tuple with exactly 2 elements
+    //              `a` binds to the first element  → 10
+    //              `b` binds to the second element → 20
+    // `= (10, 20)` → VALUE: a tuple literal
+    let (a, b) = (10, 20); // a = 10, b = 20
+    // Value: (10, 20)
+    // Pattern: (a, b)
+
+    // ── 5. Function Parameters ────────────────────────────────────────────────
+    let point = (5, 8);
+    print_coords(point);
+    // Value: (5, 8)  — the argument passed to the function
+    // Pattern: (x, y) — the parameter pattern in the function signature
+    // Type: (i32, i32) — type annotation constrains what values are accepted
+}
+
+// ── Function Parameters as Patterns ──────────────────────────────────────
+// In Rust, function parameters ARE patterns — not just variable names.
+// You can destructure the argument directly in the parameter list.
+//
+// `(x: i32, y)` → TUPLE DESTRUCTURING PATTERN in the parameter position
+//   When `print_coords((5, 8))` is called:
+//     `x` → binds to 5  (first element of the tuple)
+//     `y` → binds to 8  (second element of the tuple)
+//   The tuple `(5, 8)` is never stored as a whole — it's immediately unpacked
+//
+// `(i32, i32)` → the TYPE ANNOTATION of the parameter
+//   Constrains what values are accepted (must be a tuple of two i32s)
+//
+// C++ equivalent: no direct equivalent — C++ cannot destructure in parameter list
+//   You would write: void print_coords(int x, int y) { ... }
+//   and call it:     print_coords(point.first, point.second);
+fn print_coords((x, y): (i32, i32)) {
+    // `x` and `y` are already unpacked — use them directly
+    println!("x: {x}, y: {y}"); // Output: x: 5, y: 8
+}
+
+/*
+--------------------------------------------------------------------------------------------------------------------------------
+Concept                          | Explanation
+-------------------------------- | ---------------------------------------------------------------------------------------------
+Pattern Matching Basics in Rust  | - A pattern defines the structure or shape of data and binds variables to parts of it.
+                                 | - Pattern matching always involves two ingredients.
+                                 | - A value: the data you are trying to match.
+                                 | - A pattern: the shape or structure you are matching against.
+                                 | - Understanding the pattern–value relationship helps interpret Rust’s dealing with data.
+Examples
+1. Match Expression              | - Compares one value against multiple possible patterns.
+                                 | - Each pattern is tested in order until a match is found.
+                                 | - The _ wildcard matches any value not handled by prior patterns.
+
+2. If Let Expression             | - Matches a value against a single pattern and runs the block only if it succeeds.
+                                 | - If the pattern is irrefutable, it becomes a simple assignment e.g. if let x = 5 {}.
+                                 | - Compiler warns when an `if let` is redundant due to an irrefutable pattern.
+
+3. While Let Expression          | - Repeatedly matches a pattern in a loop until it fails.
+                                 | - If the pattern always matches, it causes an infinite loop (acts as a simple assignment).
+
+4. Let Binding                   | - Uses patterns to destructure values during assignment.
+                                 | - let (a, b) = (10, 20);  binds a to 10 and b to 20.
+
+5. Function Parameters           | - Function parameters are themselves patterns, matching against arguments (which are values).
+                                 | - The type annotations adds additional constraints, ensuring the match is type-safe.
+---------------------------------------------------------------------------------------------------------------------------------
+*/

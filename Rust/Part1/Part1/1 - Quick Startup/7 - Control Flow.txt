@@ -1,0 +1,97 @@
+// -------------------------------------------
+//          Control Flow
+// 			- Loops
+// 			- For loops
+// 			- while loops
+// ------------------------------------------
+fn main() {
+    // ── loop (infinite loop) ───────────────────────────────────────────────
+    // `loop { }` runs the block FOREVER until a `break` statement is reached.
+    // Use when you don't know in advance how many iterations are needed.
+
+    // LOOP LABELS allow `break` or `continue` to target a specific OUTER loop.
+    // `'outer:`     → a LOOP LABEL: starts with `'` (apostrophe), then a name, then `:`
+    //                 Labels an outer loop so inner code can break/continue it by name
+    // `loop`        → keyword: starts an infinite loop
+    // `{`           → opens the outer loop's body
+    'outer: loop {
+        // An INNER loop nested inside the outer loop:
+        loop {
+            println!("Simple loop");
+
+            // `break`       → keyword: exits a loop immediately
+            // `'outer`      → the LABEL of the loop to break out of
+            //                 Without a label, only the INNERMOST loop (this one) would exit.
+            //                 With `'outer`, BOTH the inner AND outer loops are exited.
+            break 'outer;
+        }
+    } // execution resumes here after `break 'outer`
+
+    // loop CAN RETURN A VALUE by passing it after `break`:
+    //
+    // `let a`       → binds `a` to the value the loop expression produces
+    // `= loop {`    → the loop is used as an EXPRESSION (produces a value)
+    let a = loop {
+        // `break 5`   → exits the loop AND makes the loop expression evaluate to 5
+        //               The value `5` is what gets assigned to `a`
+        break 5;
+    }; // a = 5
+
+    // ── For Loop ───────────────────────────────────────────────────────
+    // A `for` loop iterates over a COLLECTION or RANGE, yielding one element at a time.
+    // Preferred when iterating over a known sequence of values.
+
+    // `vec![...]`   → creates a vector (growable array) pre-filled with these values
+    let vec = vec![45, 30, 85, 90, 41, 39];
+
+    // `for`         → keyword: starts a for loop
+    // `i`           → the LOOP VARIABLE: holds the current element on each iteration
+    //                 Name is your choice; `i` is commonly used for iteration
+    // `in`          → keyword: separates the loop variable from the thing being iterated
+    // `vec`         → the collection to iterate over; each element is yielded once
+    // `{`           → opens the loop body
+    for i in vec {
+        // On each pass through the loop, `i` holds the NEXT value from `vec`
+        println!("{i}"); // prints 45, then 30, then 85, then 90, then 41, then 39
+    } // loop ends when all elements are exhausted
+
+    // Note — Compound Data Types vs. Collections:
+    //   Compound Data (array, tuple) → FIXED size, known at compile time
+    //   Collections    (Vec, HashMap) → VARIABLE size, can grow/shrink at runtime
+
+    // ── While Loop ─────────────────────────────────────────────────────
+    // A `while` loop keeps running as long as its CONDITION remains TRUE.
+    // Use it when the number of iterations is unknown but governed by a condition.
+
+    // `let mut num = 0`  → mutable variable; needs `mut` because we increment it each loop
+    let mut num = 0;
+
+    // `while`       → keyword: starts a while loop
+    // `num < 10`    → the CONDITION checked BEFORE each iteration
+    //                 If TRUE, the body executes; if FALSE, the loop stops
+    // `{`           → opens the loop body
+    while num < 10 {
+        // `num = num + 1`  → INCREMENTS num by 1 each iteration
+        //                    Could also be written as `num += 1` (compound assignment)
+        num = num + 1;
+    } // when num reaches 10, `num < 10` is false → loop exits
+}
+/*
+Summary 
+------------------|---------------------------------------------------------------------------
+Loop Type         | Summary
+------------------|---------------------------------------------------------------------------
+loop              | Runs forever unless stopped with break
+                  | Break exits current loop
+                  | labels allow breaking outer loops
+                  | Can return a value when broken
+for loop          | Best when number of iterations is known or iterating over a collection
+while loop        | Runs until a condition becomes false
+                  | Ideal when number of iterations is unknown in advance
+------------------|---------------------------------------------------------------------------
+Additional concept (Compound data versus Collection)
+------------------|---------------------------------------------------------------------------
+Compound Data     | Fixed-size, known at compile time (e.g., tuple, array).
+Collection        | Variable-size, can grow or shrink at runtime (e.g., vector, hash map).
+---------------------------------------------------------------------------------------------
+*/

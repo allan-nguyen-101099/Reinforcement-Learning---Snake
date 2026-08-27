@@ -1,0 +1,79 @@
+// -------------------------------------------
+//          - Iterating Through Options
+// -------------------------------------------
+
+fn main() {
+    // ------ Use case 1 -----
+    // Adding an optional product to a Vec
+
+    let some_product = Some("laptop");
+    let mut products = vec!["cellphone", "battery", "charger"];
+
+    // Solution 1: match — explicit but verbose
+    // match some_product {
+    //     Some(product) => products.push(product),
+    //     _ => {}  // do nothing if None
+    // };
+
+    // Solution 2: if let — cleaner but still explicit
+    // if let Some(product) = some_product {
+    //     products.push(product);
+    // }
+
+    // Solution 3: .extend() — Option behaves like a 0-or-1 element iterator
+    // If Some(x): adds x to products. If None: adds nothing.
+    products.extend(some_product);
+    println!("{:?}", products);
+
+    // ------- Use case 2 -----
+    // Iterating Vec and Option together in a unified sequence
+    let mut products = vec!["cellphone", "battery", "charger"];
+    // .chain() combines two iterators into one sequence
+    // some_product.iter() yields 0 or 1 item (&str) based on Some/None
+    let products_iter = products.iter().chain(some_product.iter());
+
+    for prod in products_iter {
+        println!("{:?} ", prod);
+    }
+
+    // ------ Use Case 3 -----
+    // Removing None values from a Vec<Option<T>>
+    let products = vec![Some("charger"), Some("battery"), None, Some("cellphone")];
+
+    // Solution 1: manual loop with is_some/unwrap — verbose
+    // let mut prod_without_none = Vec::new();
+    // for p in products {
+    //     if p.is_some() { prod_without_none.push(p.unwrap()); }
+    // }
+
+    // Solution 2: filter + map — explicit, two steps
+    // let prod_without_none = products.into_iter()
+    //     .filter(|x| x.is_some()).map(|x| x.unwrap()).collect::<Vec<&str>>();
+
+    // Solution 3: flatten() — cleanest
+    // flatten() on Iterator<Item=Option<T>> removes None and unwraps Some automatically
+    let prod_wihtout_none: Vec<&str> = products.into_iter().flatten().collect();
+    println!("{:?}", prod_wihtout_none);
+}
+
+
+/* 
+----------------------------------------------------------------------------------------
+Concept/Topic                  | Explanation
+----------------------------------------------------------------------------------------
+Option as an Iterator          | Option behaves like an iterator of zero or one item.  
+                               | Can be chained with other iterators.  
+                               | Useful in iterator-based workflows.
+
+Chaining Iterators with Option | .iter() converts Option into an iterator.  
+                               | chain method combines it with another iterator.  
+                               | Produces a unified sequence for iteration.
+
+Filtering Optional Values      | Manual loop can extract only Some values.  
+                               | Iterator methods like filter and map improve clarity.  
+
+Using flatten on Option        | flatten removes None automatically.  
+                               | Extracts inner values from Some. 
+                               | Produces a clean iterator before collect.
+----------------------------------------------------------------------------------------
+ */

@@ -1,0 +1,40 @@
+// -------------------------------------------
+// 		Reference Counting Smart Pointer
+// -------------------------------------------
+
+use std::rc::Rc;  // Rc = Reference Counted — must be imported from std::rc
+
+enum List {
+    Cons(i32, Option<Rc<List>>),  // Option allows the list to end (None = end)
+                                   // Rc<List> allows MULTIPLE owners to share the same List node
+}
+fn main() {
+    // Rc::new() — allocates the List on the heap and wraps it in an Rc with count=1
+    let a = Rc::new(List::Cons(1, Some(Rc::new(List::Cons(2, None)))));
+    println!("Reference count after a: {}", Rc::strong_count(&a));  // 1 — only `a` owns it
+    {
+        // Rc::clone(&a) — increments the reference count, does NOT deep-copy the data
+        let b = List::Cons(3, Some(Rc::clone(&a)));  // b's next points to the SAME allocation as a
+        println!("Reference count after b: {}", Rc::strong_count(&a));  // 2 — a and b share
+
+        let c = List::Cons(4, Some(Rc::clone(&a)));  // c also shares the same allocation
+        println!("Reference count after c: {}", Rc::strong_count(&a));  // 3
+    }  // b and c are dropped here — their Rc clones are released — count decreases
+    println!("Reference count after scope: {}", Rc::strong_count(&a));  // 1 again
+    // When `a` goes out of scope: count reaches 0 — heap memory is freed
+}
+
+/* 
+----------------------------------------------------------------------------------------------
+Concept / Topic       | Explanation
+----------------------|-----------------------------------------------------------------------
+Rc Smart Pointer      | It enables multiple ownership in single-threaded contexts.
+                      | Rc::new creates a new reference-counted value on the heap.
+                      | Rc::clone creates a new owner and it does not copy the inner data.
+
+Strong Count Behavior | Rc::strong_count returns the number of active owners.
+                      | Each clone increases the strong count.
+                      | When an owner goes out of scope, the count decreases automatically.
+                      | The heap data is freed only when the count reaches zero.
+----------------------------------------------------------------------------------------------
+*/

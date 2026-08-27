@@ -1,0 +1,121 @@
+// -------------------------------------------------
+// 			- Operators Precedence
+// -------------------------------------------------
+
+/*
+// ── Operator Precedence Table ─────────────────────────────────────────────────
+// Operator PRECEDENCE determines WHICH operation is evaluated FIRST
+// when multiple operators appear in the same expression.
+// Higher rows in the table = evaluated FIRST (higher binding power).
+//
+// Operator             Associativity       Meaning
+// ─────────────────────────────────────────────────────────────────────────────
+// * / %               left to right       Multiply, divide, remainder (highest of arithmetic)
+// + -                 left to right       Add, subtract
+// << >>               left to right       Bitwise left shift, right shift
+// &                   left to right       Bitwise AND
+// ^                   left to right       Bitwise XOR
+// |                   left to right       Bitwise OR
+// == != < > <= >=     Require parentheses Comparison operators (cannot chain without parens)
+// &&                  left to right       Logical AND
+// ||                  left to right       Logical OR
+// .. ..=              Require parentheses Range operators
+// = += -= *= /= %=
+// &= |= ^= <<= >>=    right to left       Assignment operators (lowest precedence)
+*/
+
+/*
+Operator             Associativity
+* / %	            left to right
++ -	                left to right
+<< >>	            left to right
+&	                left to right
+^	                left to right
+|	                left to right
+== != < > <= >=	    Require parentheses
+&&	                left to right
+||	                left to right
+.. ..=	            Require parentheses
+= += -= *= /= %=
+&= |= ^= <<= >>=	right to left
+*/
+fn main() {
+    // ── Precedence in Action ──────────────────────────────────────────────────
+    // Because `*` has HIGHER precedence than `+`,
+    // `2 * 3` is evaluated FIRST, then `5 +` is applied to the result.
+    //
+    // `5 + 2 * 3`   → `5 + (2 * 3)` → `5 + 6` → 11
+    //                  NOT `(5 + 2) * 3` = 21
+    let result = 5 + 2 * 3; // result = 11  (multiplication before addition)
+
+    // Both `*` and `/` have EQUAL precedence.
+    // With equal precedence, LEFT-TO-RIGHT associativity applies:
+    // `16 / 4 * 2`  → `(16 / 4) * 2` → `4 * 2` → 8
+    //                  NOT `16 / (4 * 2)` = 2
+    let expression = 16 / 4 * 2; // expression = 8  (left-to-right for equal precedence)
+
+
+/*
+Operator             Associativity
+* / %	            left to right
++ -	                left to right
+<< >>	            left to right
+&	                left to right
+^	                left to right
+|	                left to right
+== != < > <= >=	    Require parentheses
+&&	                left to right
+||	                left to right
+.. ..=	            Require parentheses
+= += -= *= /= %=
+&= |= ^= <<= >>=	right to left
+*/
+
+    // ── Parentheses Override Precedence ──────────────────────────────────────
+    // Parentheses `( )` have the HIGHEST precedence of all.
+    // Wrapping an expression in parentheses forces it to be evaluated FIRST.
+    //
+    // `(5 + 2) * 3` → addition inside parentheses runs first: 7 * 3 = 21
+    //                  Without parens: `5 + 2 * 3` = 11 (multiplication first)
+    let x = (5 + 2) * 3; // x = 21
+
+    let a = 3;
+    let b = 4;
+    let c = 5;
+
+    // ── Complex Expression Walkthrough ───────────────────────────────────────
+    // `a + b - c == 2 || a == 3`
+    //
+    // Step-by-step using the precedence table:
+    // 1. `+` and `-` have equal precedence, evaluated left-to-right:
+    //    a + b = 3 + 4 = 7
+    // 2. 7 - c = 7 - 5 = 2
+    // 3. `==` has LOWER precedence than `+`/`-`, so it's evaluated next:
+    //    2 == 2 → true
+    // 4. The second `==`:
+    //    a == 3 → 3 == 3 → true
+    // 5. `||` (logical OR) has even LOWER precedence, evaluated last:
+    //    true || true → true
+    let result = a + b - c == 2 || a == 3; 
+    // 1. a + b = 7 
+    // 2. 7 - c = 2 
+    // 3. 2 == 2 -> true 
+    // 4. a == 3 -> true 
+    // 5. true || true -> true 
+
+}
+
+
+/* 
+Topic                  | Key Points
+-----------------------|-----------------------------------------------------------
+Operator Precedence    | Defines which operations are evaluated first in an expression
+                       | Operators on the same row in precedence table have equal precedence
+Associativity          | Determines order when operators have same precedence
+                       | Most arithmetic operators are left-to-right associative
+Parentheses            | Have the highest precedence
+                       | Used to explicitly control order of evaluation
+Complex Expressions    | Precedence table helps resolve compound expressions
+                       | Writing very complex expressions is discouraged
+                       | Parentheses recommended for clarity
+ */

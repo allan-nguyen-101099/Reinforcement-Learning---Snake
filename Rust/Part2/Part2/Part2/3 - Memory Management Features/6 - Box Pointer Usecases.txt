@@ -1,0 +1,66 @@
+// -------------------------------------------
+//         Box Smart Pointer (Part 2)
+// -------------------------------------------
+
+// Example 1
+// Use Case 1: Option<Box<T>> to fix the unnecessary Nil allocation problem
+// (commented out — shown for comparison)
+/* 
+#[derive(Debug)]
+enum List {
+    Cons(i32, Option<Box<List>>),  // Option<Box<...>> — None terminates the list without a heap allocation
+}
+
+fn main() {
+    let list = List::Cons(
+        1,
+        Some(Box::new(List::Cons(2, Some(Box::new(List::Cons(3, None)))))),
+        //                                                        ^^^^ None — no Box needed for the end
+    );
+
+    println!("{:?}", list);
+}
+*/
+
+// Use Case 2: Avoiding copying large data + heterogeneous collections
+struct Huge_Data;  // unit struct — no fields, just a type name
+struct Small_Data;
+
+trait Storage {}  // marker trait — no methods
+
+impl Storage for Huge_Data {}  // Huge_Data satisfies the Storage trait
+impl Storage for Small_Data {}
+
+fn main() {
+    let data_1 = Huge_Data;         // data_1 is on the STACK
+    let data_2 = Box::new(Huge_Data); // Box — data on the HEAP, only pointer (8 bytes) on stack
+
+    let data_3 = data_1;  // data_1 MOVED to data_3 — copies ALL stack data (could be large)
+    let data_4 = data_2;  // data_2 (a Box) MOVED to data_4 — copies only the 8-byte pointer (cheap!)
+
+    let data_5 = Box::new(Small_Data);
+
+    // Vec<Box<dyn Storage>> — heterogeneous collection via trait objects
+    // Box<dyn Storage> can hold ANY type implementing Storage — different concrete types in same Vec
+    let data: Vec<Box<dyn Storage>> = vec![Box::new(data_3), data_4, data_5];
+}
+
+/* 
+--------------------------------------------------------------------------------------------------
+Concept / Topic                | Explanation
+-------------------------------|------------------------------------------------------------------
+Issue in List enum             |The enum List { Cons(i32, Box<List>), Nil} 
+                               | The terminating Nil variant caused unnecessary heap allocation.
+                               | Wrapping the Cons variant by an Option, avoids this. 
+
+Use Cases of Box           
+1. Avoiding Copying Large Data | Moving a large stack-allocated struct copies all of its data.
+                               | Moving a Box copies only the pointer stored on the stack.
+                               | The heap allocation itself is not duplicated.
+                               | This is beneficial for performance-sensitive code.
+
+2. Heterogeneous Collections   | Vectors require all elements to have the same concrete type.
+                               | Trait objects allow storing different types under a common trait.
+                               | Box<dyn Trait> enables heterogeneous collections in vectors.
+---------------------------------------------------------------------------------------------------
+*/

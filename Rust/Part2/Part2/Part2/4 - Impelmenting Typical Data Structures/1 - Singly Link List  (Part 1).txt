@@ -1,0 +1,88 @@
+// -------------------------------------------
+// 		Link List (Part 1)
+// -------------------------------------------
+
+#[derive(Debug)]
+struct Linklist {
+    head: pointer,  // head — the first node in the list (or None if the list is empty)
+}
+
+#[derive(Debug)]
+struct Node {
+    element: i32,   // the value stored in this node
+    next: pointer,  // pointer to the next node — None means this is the last node
+}
+
+type pointer = Option<Box<Node>>;  // type alias — `pointer` is shorthand for Option<Box<Node>>
+                                    // Option: None = no next node, Some = there is a next node
+                                    // Box: heap allocates the next Node (avoids infinite struct size)
+fn main() {
+    // let list = Node {
+    //     element: 1,
+    //     next: None,
+    // };
+
+    // let list = Node {
+    //     element: 1,
+    //     next: Some(Box::new(Node {
+    //         element: 2,
+    //         next: None,
+    //     })),
+    // };
+
+    // let list = Linklist {
+    //     head: Some(Node {
+    //         element: 1,
+    //         next: None,
+    //     }),
+    // };
+
+    // let list = Linklist {
+    //     head: Some(Node {
+    //         element: 1,
+    //         next: Some(Box::new(Node {
+    //             element: 2,
+    //             next: Some(Box::new(Node {
+    //                 element: 3,
+    //                 next: None,
+    //             })),
+    //         })),
+    //     }),
+    // };
+
+    // let list = Linklist { head: None };
+
+    let list = Linklist {
+        head: Some(Box::new(Node {
+            element: 100,
+            next: Some(Box::new(Node {
+                element: 200,
+                next: None,
+            })),
+        })),
+    };
+
+    println!("{:?}", &list.head);
+}
+
+
+/* 
+-----------------------------------------------------------------------------------------------------
+Concept / Topic           | Explanation
+--------------------------|--------------------------------------------------------------------------
+Linked List Basics        | A linked list is used to organize and store data as a sequence of nodes.
+                          | Each node contains a value and a reference pointing to the next node.
+                          | The first node is called the head and the last node is called the tail.
+                          | The tail node points to nothing, marking the end of the list.
+
+Node Structure Design     | A node struct stores the element value and a link to next node as fields.
+                          | The next field is defined as an optional pointer to another node.
+
+Head Wrapper Structure    | It allows explicitly storing the starting or head node.
+                          | By making the head field as Option<Node>, it allows for an empty list. 
+                          
+Improving Type Readability| Recursive pointer types using Option and Box can become difficult to read.
+                          | A custom pointer type alias is introduced to simplify these types.
+                          | This improves readability and keeps struct definitions cleaner.
+-----------------------------------------------------------------------------------------------------
+*/
